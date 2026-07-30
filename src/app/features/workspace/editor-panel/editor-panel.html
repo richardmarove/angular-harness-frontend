@@ -1,29 +1,29 @@
-<div class="flex flex-col h-full min-h-0 bg-[#fbf1c7] select-none">
+<div class="flex flex-col h-full min-h-0 bg-surface select-none">
 
   <!-- Tab Bar Header -->
-  <div class="flex items-center border-b border-[#d5c4a1] bg-[#f2e5bc] overflow-x-auto h-9 flex-shrink-0">
+  <div class="flex items-center border-b border-[#d5c4a1] bg-surface-2 overflow-x-auto h-9 shrink-0">
     @for (tab of fileService.openTabs(); track tab) {
       <div
-        class="group flex items-center gap-2 px-3.5 h-full text-xs cursor-pointer border-r border-[#d5c4a1] flex-shrink-0 transition-all relative"
+        class="group flex items-center gap-2 px-3.5 h-full text-xs cursor-pointer border-r border-[#d5c4a1] shrink-0 transition-all relative"
         [class.bg-[#fbf1c7]]="fileService.activeTab() === tab"
         [class.text-[#282828]]="fileService.activeTab() === tab"
         [class.font-semibold]="fileService.activeTab() === tab"
         [class.text-[#7c6f64]]="fileService.activeTab() !== tab"
         [class.hover:bg-[#ebdbb2]/60]="fileService.activeTab() !== tab"
         (click)="selectTab(tab)">
-        
+
         <!-- Active Tab Top Accent Line -->
         @if (fileService.activeTab() === tab) {
           <div class="absolute top-0 left-0 right-0 h-0.5 bg-[#076678]"></div>
         }
 
         <!-- Icon badge -->
-        <span class="flex-shrink-0">
+        <span class="shrink-0">
           @switch (getFileType(tab)) {
             @case ('ts') { <span class="text-[9px] font-mono font-bold text-[#076678] bg-[#e1ecf0] px-1 py-0.2 rounded border border-[#076678]/20">TS</span> }
             @case ('css') { <span class="text-[9px] font-mono font-bold text-[#427b58] bg-[#e4ede7] px-1 py-0.2 rounded border border-[#427b58]/20">CS</span> }
             @case ('html') { <span class="text-[9px] font-mono font-bold text-[#af3a03] bg-[#fbeada] px-1 py-0.2 rounded border border-[#af3a03]/20">HT</span> }
-            @default { <span class="text-[9px] font-mono font-bold text-[#7c6f64] bg-[#ebdbb2] px-1 py-0.2 rounded border border-[#7c6f64]/20">DOC</span> }
+            @default { <span class="text-[9px] font-mono font-bold text-text-muted bg-[#ebdbb2] px-1 py-0.2 rounded border border-text-muted/20">DOC</span> }
           }
         </span>
 
@@ -44,25 +44,25 @@
         </button>
       </div>
     }
-    
+
     @if (fileService.openTabs().length === 0) {
-      <div class="px-4 text-xs text-[#7c6f64] italic font-mono flex items-center h-full">
+      <div class="px-4 text-xs text-text-muted italic font-mono flex items-center h-full">
         No active file open
       </div>
     }
   </div>
 
   <!-- Code Editor Body (Single Scrollbar Textarea + Synchronized Gutter) -->
-  <div class="flex-1 min-h-0 overflow-hidden flex bg-[#fbf1c7] font-mono text-xs text-[#282828] relative">
+  <div class="flex-1 min-h-0 overflow-hidden flex bg-surface font-mono text-xs text-[#282828] relative">
     @if (fileService.openTabs().length > 0 && fileService.activeTab()) {
       @if (fileService.isReadingFile()) {
-        <div class="absolute inset-0 flex items-center justify-center bg-[#fbf1c7]/80 z-10 text-xs font-mono text-[#7c6f64] animate-pulse">
+        <div class="absolute inset-0 flex items-center justify-center bg-surface/80 z-10 text-xs font-mono text-text-muted animate-pulse">
           Reading file from disk…
         </div>
       }
 
       <!-- Line Number Gutter (Fixed height, overflow-hidden, translateY synced) -->
-      <div class="h-full min-h-0 py-3 px-3 border-r border-[#d5c4a1] bg-[#f2e5bc]/50 text-[#7c6f64] opacity-70 text-right select-none font-mono text-[12px] leading-relaxed overflow-hidden flex-shrink-0 min-w-[44px]">
+      <div class="h-full min-h-0 py-3 px-3 border-r border-[#d5c4a1] bg-surface-2/50 text-text-muted opacity-70 text-right select-none font-mono text-[12px] leading-relaxed overflow-hidden shrink-0 min-w-11">
         <div [style.transform]="'translateY(-' + scrollTop() + 'px)'" class="will-change-transform">
           @for (num of getLineNumbers(); track num) {
             <div>{{ num }}</div>
@@ -86,30 +86,30 @@
       <!-- Empty State -->
       <div class="w-full h-full flex flex-col items-center justify-center gap-3 text-center opacity-60">
         <div class="w-12 h-12 rounded-xl bg-[#ebdbb2] flex items-center justify-center border border-[#d5c4a1]">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-[#7c6f64]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
             <path stroke-linecap="round" stroke-linejoin="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
           </svg>
         </div>
         <div>
           <p class="text-xs font-semibold text-[#282828]">No file currently open</p>
-          <p class="text-[10px] text-[#7c6f64] mt-1 font-mono">Select a file from the explorer sidebar to read and edit</p>
+          <p class="text-[10px] text-text-muted mt-1 font-mono">Select a file from the explorer sidebar to read and edit</p>
         </div>
       </div>
     }
   </div>
 
   <!-- Status Bar Footer -->
-  <div class="flex items-center justify-between px-3 py-1 bg-[#f2e5bc] border-t border-[#d5c4a1] text-[10px] text-[#7c6f64] font-mono flex-shrink-0">
+  <div class="flex items-center justify-between px-3 py-1 bg-surface-2 border-t border-[#d5c4a1] text-[10px] text-text-muted font-mono shrink-0">
     <div class="flex items-center gap-3">
       <span class="flex items-center gap-1.5">
         <span class="w-1.5 h-1.5 rounded-full bg-[#076678]"></span>
         <span class="font-semibold text-[#282828]">{{ fileService.activeTab() ? getFileType(fileService.activeTab()).toUpperCase() : 'PLAIN TEXT' }}</span>
       </span>
       @if (fileService.activeTab()) {
-        <span class="truncate max-w-72 text-[#7c6f64]/80">{{ fileService.activeTab() }}</span>
+        <span class="truncate max-w-72 text-text-muted/80">{{ fileService.activeTab() }}</span>
       }
     </div>
-    
+
     <div class="flex items-center gap-4">
       <span>Ln {{ getLineNumbers().length }}, Col 1</span>
 
@@ -130,7 +130,7 @@
             (click)="saveCurrentFile()"
             [disabled]="!isCurrentDirty() || fileService.isSavingFile()"
             title="Save file changes (Ctrl+S)"
-            class="px-2 py-0.5 rounded bg-[#282828] text-[#fbf1c7] text-[10px] font-mono hover:bg-[#3c3836] disabled:opacity-30 disabled:cursor-not-allowed transition-all">
+            class="px-2 py-0.5 rounded bg-[#282828] text-surface text-[10px] font-mono hover:bg-accent-hover disabled:opacity-30 disabled:cursor-not-allowed transition-all">
             Save
           </button>
         </div>
