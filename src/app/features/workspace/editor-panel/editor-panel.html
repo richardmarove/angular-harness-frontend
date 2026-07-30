@@ -2,18 +2,18 @@
 
   <!-- Tab Bar Header -->
   <div class="flex items-center border-b border-[#d5c4a1] bg-[#f2e5bc] overflow-x-auto h-9">
-    @for (tab of tabs(); track tab) {
+    @for (tab of fileService.openTabs(); track tab) {
       <div
         class="group flex items-center gap-2 px-3.5 h-full text-xs cursor-pointer border-r border-[#d5c4a1] flex-shrink-0 transition-all relative"
-        [class.bg-[#fbf1c7]]="activeTab() === tab"
-        [class.text-[#282828]]="activeTab() === tab"
-        [class.font-semibold]="activeTab() === tab"
-        [class.text-[#7c6f64]]="activeTab() !== tab"
-        [class.hover:bg-[#ebdbb2]/60]="activeTab() !== tab"
+        [class.bg-[#fbf1c7]]="fileService.activeTab() === tab"
+        [class.text-[#282828]]="fileService.activeTab() === tab"
+        [class.font-semibold]="fileService.activeTab() === tab"
+        [class.text-[#7c6f64]]="fileService.activeTab() !== tab"
+        [class.hover:bg-[#ebdbb2]/60]="fileService.activeTab() !== tab"
         (click)="selectTab(tab)">
         
         <!-- Active Tab Top Accent Line -->
-        @if (activeTab() === tab) {
+        @if (fileService.activeTab() === tab) {
           <div class="absolute top-0 left-0 right-0 h-0.5 bg-[#076678]"></div>
         }
 
@@ -26,7 +26,14 @@
             @default { <span class="text-[9px] font-mono font-bold text-[#7c6f64] bg-[#ebdbb2] px-1 py-0.2 rounded border border-[#7c6f64]/20">DOC</span> }
           }
         </span>
-        <span class="font-mono text-[11px] truncate">{{ tab }}</span>
+
+        <!-- Title + Unsaved dot indicator -->
+        <span class="font-mono text-[11px] truncate flex items-center gap-1">
+          <span>{{ getFileName(tab) }}</span>
+          @if (fileService.isDirty(tab)) {
+            <span class="w-1.5 h-1.5 rounded-full bg-[#af3a03]" title="Unsaved changes"></span>
+          }
+        </span>
 
         <!-- Close Tab Button -->
         <button
@@ -38,26 +45,39 @@
       </div>
     }
     
-    @if (tabs().length === 0) {
+    @if (fileService.openTabs().length === 0) {
       <div class="px-4 text-xs text-[#7c6f64] italic font-mono flex items-center h-full">
         No active file open
       </div>
     }
   </div>
 
-  <!-- Code Editor Body (Gutter + Code Lines) -->
-  <div class="flex-1 overflow-auto flex bg-[#fbf1c7] font-mono text-xs text-[#282828]">
-    @if (tabs().length > 0) {
+  <!-- Code Editor Body (Gutter + Live Editable Textarea) -->
+  <div class="flex-1 overflow-hidden flex bg-[#fbf1c7] font-mono text-xs text-[#282828] relative">
+    @if (fileService.openTabs().length > 0 && fileService.activeTab()) {
+      @if (fileService.isReadingFile()) {
+        <div class="absolute inset-0 flex items-center justify-center bg-[#fbf1c7]/80 z-10 text-xs font-mono text-[#7c6f64] animate-pulse">
+          Reading file from disk…
+        </div>
+      }
+
       <!-- Line Number Gutter -->
-      <div class="py-3 px-3 border-r border-[#d5c4a1] bg-[#f2e5bc]/50 text-[#7c6f64] opacity-70 text-right select-none font-mono text-[11px] leading-relaxed">
+      <div class="py-3 px-3 border-r border-[#d5c4a1] bg-[#f2e5bc]/50 text-[#7c6f64] opacity-70 text-right select-none font-mono text-[11px] leading-relaxed overflow-hidden flex-shrink-0 min-w-[40px]">
         @for (num of getLineNumbers(); track num) {
           <div>{{ num }}</div>
         }
       </div>
 
-      <!-- Monospaced Code Container -->
-      <div class="flex-1 p-3 overflow-x-auto">
-        <pre class="m-0 font-mono text-[12px] leading-relaxed text-[#282828] whitespace-pre">{{ getCurrentCode() }}</pre>
+      <!-- Editable Monospaced Textarea -->
+      <div class="flex-1 overflow-auto relative">
+        <textarea
+          id="editor-textarea"
+          [value]="getCurrentCode()"
+          (input)="onCodeInput($any($event.target).value)"
+          placeholder="// Start typing code..."
+          spellcheck="false"
+          class="w-full h-full p-3 bg-transparent text-[#282828] font-mono text-[12px] leading-relaxed resize-none outline-none whitespace-pre border-none font-normal"
+        ></textarea>
       </div>
     } @else {
       <!-- Empty State -->
@@ -68,8 +88,8 @@
           </svg>
         </div>
         <div>
-          <p class="text-xs font-semibold text-[#282828]">No file currently active</p>
-          <p class="text-[10px] text-[#7c6f64] mt-1 font-mono">Select a file from the explorer sidebar to begin editing</p>
+          <p class="text-xs font-semibold text-[#282828]">No file currently open</p>
+          <p class="text-[10px] text-[#7c6f64] mt-1 font-mono">Select a file from the explorer sidebar to read and edit</p>
         </div>
       </div>
     }
@@ -77,19 +97,41 @@
 
   <!-- Status Bar Footer -->
   <div class="flex items-center justify-between px-3 py-1 bg-[#f2e5bc] border-t border-[#d5c4a1] text-[10px] text-[#7c6f64] font-mono flex-shrink-0">
-    <div class="flex items-center gap-2">
+    <div class="flex items-center gap-3">
       <span class="flex items-center gap-1.5">
         <span class="w-1.5 h-1.5 rounded-full bg-[#076678]"></span>
-        <span class="font-semibold text-[#282828]">{{ activeTab() ? activeTab().split('.').pop()?.toUpperCase() : 'PLAIN TEXT' }}</span>
+        <span class="font-semibold text-[#282828]">{{ fileService.activeTab() ? getFileType(fileService.activeTab()).toUpperCase() : 'PLAIN TEXT' }}</span>
       </span>
+      @if (fileService.activeTab()) {
+        <span class="truncate max-w-72 text-[#7c6f64]/80">{{ fileService.activeTab() }}</span>
+      }
     </div>
     
     <div class="flex items-center gap-4">
-      <span>Ln 1, Col 1</span>
-      <span>UTF-8</span>
-      <span class="text-[#79740e] font-semibold flex items-center gap-1">
-        <span>✓</span> Ready
-      </span>
+      <span>Ln {{ getLineNumbers().length }}, Col 1</span>
+
+      <!-- Save Status & Save Button -->
+      @if (fileService.activeTab()) {
+        <div class="flex items-center gap-2">
+          @if (fileService.isSavingFile()) {
+            <span class="text-[#b57614] font-semibold animate-pulse">Saving…</span>
+          } @else if (isCurrentDirty()) {
+            <span class="text-[#af3a03] font-semibold">● Modified</span>
+          } @else if (fileService.saveStatus()) {
+            <span class="text-[#79740e] font-semibold">{{ fileService.saveStatus() }}</span>
+          } @else {
+            <span class="text-[#79740e] font-semibold">✓ Saved</span>
+          }
+
+          <button
+            (click)="saveCurrentFile()"
+            [disabled]="!isCurrentDirty() || fileService.isSavingFile()"
+            title="Save file changes (Ctrl+S)"
+            class="px-2 py-0.5 rounded bg-[#282828] text-[#fbf1c7] text-[10px] font-mono hover:bg-[#3c3836] disabled:opacity-30 disabled:cursor-not-allowed transition-all">
+            Save
+          </button>
+        </div>
+      }
     </div>
   </div>
 </div>
