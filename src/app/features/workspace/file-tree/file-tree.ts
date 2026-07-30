@@ -73,16 +73,14 @@ export class FileTreeComponent {
     this.tree.set(updated);
   }
 
-  getFileIcon(name: string): string {
+  getFileType(name: string): 'ts' | 'html' | 'css' | 'json' | 'md' | 'config' | 'default' {
     const lower = name.toLowerCase();
-    if (lower.endsWith('.ts')) return '🔷';
-    if (lower.endsWith('.html')) return '🟧';
-    if (lower.endsWith('.css') || lower.endsWith('.scss')) return '🎨';
-    if (lower.endsWith('.json')) return '🟨';
-    if (lower.endsWith('.md')) return '📝';
-    if (lower.endsWith('.js') || lower.endsWith('.mjs')) return '🟨';
-    if (lower.endsWith('.svg') || lower.endsWith('.png') || lower.endsWith('.jpg')) return '🖼️';
-    if (lower.includes('config') || lower.startsWith('.')) return '⚙️';
-    return '📄';
+    if (lower.endsWith('.ts')) return 'ts';
+    if (lower.endsWith('.html')) return 'html';
+    if (lower.endsWith('.css') || lower.endsWith('.scss')) return 'css';
+    if (lower.endsWith('.json')) return 'json';
+    if (lower.endsWith('.md')) return 'md';
+    if (lower.includes('config') || lower.startsWith('.')) return 'config';
+    return 'default';
   }
 }

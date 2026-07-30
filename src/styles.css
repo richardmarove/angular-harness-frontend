@@ -2,22 +2,22 @@
 @import "tailwindcss";
 
 @theme {
-  --color-surface: #090a0f;
-  --color-surface-2: #11131f;
-  --color-surface-3: #181b2c;
-  --color-surface-4: #21253b;
-  --color-accent: #6366f1;
-  --color-accent-hover: #818cf8;
-  --color-accent-glow: rgba(99, 102, 241, 0.25);
-  --color-accent-muted: rgba(99, 102, 241, 0.12);
-  --color-border: rgba(255, 255, 255, 0.08);
-  --color-border-subtle: rgba(255, 255, 255, 0.05);
-  --color-text: #f1f3f9;
-  --color-text-muted: #8b95b8;
-  --color-user-bubble: #19233d;
-  --color-model-bubble: #131625;
+  --color-surface: #fbf1c7;
+  --color-surface-2: #f2e5bc;
+  --color-surface-3: #ebdbb2;
+  --color-surface-4: #d5c4a1;
+  --color-accent: #282828;
+  --color-accent-hover: #3c3836;
+  --color-accent-glow: rgba(40, 40, 40, 0.08);
+  --color-accent-muted: rgba(40, 40, 40, 0.06);
+  --color-border: #d5c4a1;
+  --color-border-subtle: rgba(40, 40, 40, 0.12);
+  --color-text: #282828;
+  --color-text-muted: #7c6f64;
+  --color-user-bubble: #ebdbb2;
+  --color-model-bubble: #f9f5d7;
   --font-mono: "JetBrains Mono", "Fira Code", monospace;
-  --font-sans: "Plus Jakarta Sans", "Inter", system-ui, sans-serif;
+  --font-sans: "Plus Jakarta Sans", system-ui, sans-serif;
 }
 
 *, *::before, *::after {
@@ -35,25 +35,72 @@ html, body {
   overflow: hidden;
 }
 
-/* Glassmorphism helpers */
-.glass-panel {
-  background: rgba(17, 19, 31, 0.75);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+/* Minimalist Flat Card Architecture */
+.bento-card {
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+}
+
+.bento-panel {
+  background: var(--color-surface);
   border: 1px solid var(--color-border);
 }
 
-.glass-card {
-  background: rgba(24, 27, 44, 0.65);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid var(--color-border);
-  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5);
+/* Gruvbox Light Muted Pastel Badges */
+.badge-aqua {
+  background-color: #e1ecf0;
+  color: #076678;
+  border: 1px solid rgba(7, 102, 120, 0.25);
 }
 
-/* Glowing outline effect */
-.glow-accent {
-  box-shadow: 0 0 20px var(--color-accent-glow);
+.badge-green {
+  background-color: #e6ebd0;
+  color: #79740e;
+  border: 1px solid rgba(121, 116, 14, 0.25);
+}
+
+.badge-amber {
+  background-color: #f5ebd4;
+  color: #b57614;
+  border: 1px solid rgba(181, 118, 20, 0.25);
+}
+
+.badge-red {
+  background-color: #fbd6d6;
+  color: #9d0006;
+  border: 1px solid rgba(157, 0, 6, 0.25);
+}
+
+.badge-purple {
+  background-color: #eee0e7;
+  color: #8f3f71;
+  border: 1px solid rgba(143, 63, 113, 0.25);
+}
+
+.badge-neutral {
+  background-color: var(--color-surface-3);
+  color: var(--color-text-muted);
+  border: 1px solid var(--color-border);
+}
+
+/* Primary High-Contrast Gruvbox CTA Button */
+.btn-primary {
+  background-color: #282828;
+  color: #fbf1c7;
+  border: 1px solid #282828;
+  border-radius: 8px;
+  font-weight: 600;
+  transition: all 150ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background-color: #3c3836;
+  transform: translateY(-1px);
+}
+
+.btn-primary:active:not(:disabled) {
+  transform: scale(0.98);
 }
 
 /* Custom Scrollbar */
@@ -65,28 +112,19 @@ html, body {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.12);
+  background: #d5c4a1;
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.25);
+  background: #bdae93;
 }
 
-/* Animations */
+/* Subtle Micro-Animations */
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(4px); }
+  from { opacity: 0; transform: translateY(6px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
 .animate-fade-in {
   animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-@keyframes pulseGlow {
-  0%, 100% { opacity: 0.6; transform: scale(1); }
-  50% { opacity: 1; transform: scale(1.03); }
-}
-
-.animate-pulse-glow {
-  animation: pulseGlow 3s infinite ease-in-out;
 }

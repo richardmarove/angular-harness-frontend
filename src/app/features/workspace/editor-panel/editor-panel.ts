@@ -22,9 +22,11 @@ bootstrapApplication(WorkspaceComponent, appConfig)
 `,
     'styles.css': `@import "tailwindcss";
 
+/* Gruvbox Light Palette Tokens */
 @theme {
-  --color-surface: #090a0f;
-  --color-accent: #6366f1;
+  --color-surface: #fbf1c7;
+  --color-surface-2: #f2e5bc;
+  --color-accent: #282828;
 }
 
 html, body {
@@ -62,11 +64,12 @@ export const routes: Routes = [
     return this.fileContents[active] ?? `// ${active}\n// File ready for editing.`;
   }
 
-  getFileIcon(name: string): string {
-    if (name.endsWith('.ts')) return '🔷';
-    if (name.endsWith('.css')) return '🎨';
-    if (name.endsWith('.html')) return '🟧';
-    return '📄';
+  getFileType(name: string): 'ts' | 'css' | 'html' | 'json' | 'default' {
+    if (name.endsWith('.ts')) return 'ts';
+    if (name.endsWith('.css')) return 'css';
+    if (name.endsWith('.html')) return 'html';
+    if (name.endsWith('.json')) return 'json';
+    return 'default';
   }
 
   getLineNumbers(): number[] {

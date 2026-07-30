@@ -1,4 +1,4 @@
-<div class="flex flex-col h-screen bg-[var(--color-surface)] text-[var(--color-text)] overflow-hidden font-sans select-none">
+<div class="flex flex-col h-screen bg-[#fbf1c7] text-[#282828] overflow-hidden font-sans select-none">
 
   <!-- Session setup overlay (shown when no session is active) -->
   @if (!sessionService.isConfigured()) {
@@ -6,7 +6,7 @@
   }
 
   <!-- Header / Top Bar -->
-  <header class="flex items-center justify-between px-4 h-12 border-b border-[var(--color-border)] bg-[var(--color-surface-2)]/90 backdrop-blur-md flex-shrink-0 z-20">
+  <header class="flex items-center justify-between px-4 h-12 border-b border-[#d5c4a1] bg-[#f2e5bc] flex-shrink-0 z-20">
     
     <!-- Left Section: Logo + Explorer Toggle + Active Session Badge -->
     <div class="flex items-center gap-3">
@@ -15,7 +15,7 @@
         id="toggle-sidebar"
         (click)="toggleSidebar()"
         title="Toggle File Explorer (Ctrl+B)"
-        class="p-1.5 rounded-lg text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-surface-3)] transition-all flex items-center justify-center border border-transparent hover:border-[var(--color-border)]">
+        class="p-1.5 rounded-lg text-[#7c6f64] hover:text-[#282828] hover:bg-[#ebdbb2] transition-all flex items-center justify-center border border-transparent hover:border-[#d5c4a1]">
         <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
           <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h7" />
         </svg>
@@ -23,33 +23,31 @@
 
       <!-- App Branding Logo -->
       <div class="flex items-center gap-2.5">
-        <div class="w-6 h-6 rounded-lg bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center shadow-md shadow-indigo-500/20">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
-          </svg>
+        <div class="w-6 h-6 rounded-md bg-[#282828] text-[#fbf1c7] flex items-center justify-center font-mono font-bold text-xs">
+          &lt;/&gt;
         </div>
-        <span class="text-xs font-bold tracking-tight bg-gradient-to-r from-white via-indigo-100 to-indigo-300 bg-clip-text text-transparent">
+        <span class="text-xs font-bold tracking-tight text-[#282828]">
           CodeAgent
         </span>
-        <span class="text-[9px] font-mono px-1.5 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 font-medium">
+        <span class="text-[9px] font-mono px-1.5 py-0.5 rounded badge-neutral font-medium">
           v2.0
         </span>
       </div>
 
       <!-- Divider -->
-      <div class="h-4 w-px bg-[var(--color-border)] mx-1"></div>
+      <div class="h-4 w-px bg-[#d5c4a1] mx-1"></div>
 
       <!-- Active Session Directory Badge -->
       @if (sessionService.isConfigured()) {
-        <div class="flex items-center gap-2 px-3 py-1 rounded-full bg-[var(--color-surface-3)]/80 border border-[var(--color-border)] shadow-inner">
-          <div class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-sm shadow-emerald-400/50"></div>
-          <span class="text-[11px] text-[var(--color-text-muted)] font-mono truncate max-w-64" [title]="sessionService.workingDir()">
+        <div class="flex items-center gap-2 px-2.5 py-1 rounded-md bg-[#ebdbb2] border border-[#d5c4a1]">
+          <div class="w-2 h-2 rounded-full bg-[#79740e]"></div>
+          <span class="text-[11px] text-[#7c6f64] font-mono truncate max-w-64" [title]="sessionService.workingDir()">
             {{ sessionService.workingDir() }}
           </span>
           <button
             (click)="changeSession()"
             title="Disconnect or switch working directory"
-            class="text-[var(--color-text-muted)] hover:text-rose-400 transition-colors ml-1 p-0.5 rounded hover:bg-rose-500/10 flex items-center justify-center">
+            class="text-[#7c6f64] hover:text-[#9d0006] transition-colors ml-1 p-0.5 rounded hover:bg-[#fbd6d6] flex items-center justify-center">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
             </svg>
@@ -65,16 +63,14 @@
         id="toggle-chat"
         (click)="toggleChat()"
         title="Toggle AI Coding Assistant"
-        class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all border"
-        [class.bg-[var(--color-accent-muted)]]="chatOpen()"
-        [class.text-[var(--color-accent-hover)]]="chatOpen()"
-        [class.border-indigo-500/30]="chatOpen()"
-        [class.shadow-md]="chatOpen()"
-        [class.shadow-indigo-500/10]="chatOpen()"
-        [class.text-[var(--color-text-muted)]]="!chatOpen()"
+        class="flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-semibold transition-all border"
+        [class.bg-[#076678]]="chatOpen()"
+        [class.text-[#fbf1c7]]="chatOpen()"
+        [class.border-[#076678]]="chatOpen()"
+        [class.text-[#7c6f64]]="!chatOpen()"
         [class.border-transparent]="!chatOpen()"
-        [class.hover:bg-[var(--color-surface-3)]]="!chatOpen()">
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        [class.hover:bg-[#ebdbb2]]="!chatOpen()">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
           <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
         </svg>
         <span>AI Assistant</span>
@@ -87,19 +83,19 @@
 
     <!-- File Explorer Sidebar -->
     @if (sidebarOpen()) {
-      <aside class="w-60 flex-shrink-0 border-r border-[var(--color-border)] bg-[var(--color-surface-2)]/60 overflow-hidden flex flex-col transition-all">
+      <aside class="w-60 flex-shrink-0 border-r border-[#d5c4a1] bg-[#f2e5bc] overflow-hidden flex flex-col transition-all">
         <app-file-tree />
       </aside>
     }
 
     <!-- Main Editor Panel -->
-    <main class="flex-1 overflow-hidden flex flex-col bg-[var(--color-surface)]">
+    <main class="flex-1 overflow-hidden flex flex-col bg-[#fbf1c7]">
       <app-editor-panel />
     </main>
 
     <!-- AI Assistant Chat Panel -->
     @if (chatOpen()) {
-      <aside class="w-96 flex-shrink-0 border-l border-[var(--color-border)] bg-[var(--color-surface-2)]/80 overflow-hidden flex flex-col transition-all shadow-xl">
+      <aside class="w-96 flex-shrink-0 border-l border-[#d5c4a1] bg-[#f2e5bc] overflow-hidden flex flex-col transition-all">
         <app-chat-panel />
       </aside>
     }
