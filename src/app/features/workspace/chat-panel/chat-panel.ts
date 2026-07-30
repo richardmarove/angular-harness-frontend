@@ -30,6 +30,12 @@ export class ChatPanelComponent implements AfterViewChecked, OnDestroy {
   readonly userInput = signal('');
   readonly errorMsg = signal('');
 
+  readonly samplePrompts = signal([
+    'Analyze workspace structure & components',
+    'Check and fix potential build or lint errors',
+    'Refactor client styling with modern dark theme',
+  ]);
+
   private shouldScrollBottom = false;
 
   ngAfterViewChecked(): void {
@@ -52,6 +58,11 @@ export class ChatPanelComponent implements AfterViewChecked, OnDestroy {
       event.preventDefault();
       this.send();
     }
+  }
+
+  sendQuickPrompt(promptText: string): void {
+    this.userInput.set(promptText);
+    this.send();
   }
 
   send(): void {

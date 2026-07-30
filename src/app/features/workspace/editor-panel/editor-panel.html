@@ -1,54 +1,87 @@
-<div class="flex flex-col h-full bg-[var(--color-surface)]">
+<div class="flex flex-col h-full bg-[var(--color-surface)] select-none">
 
-  <!-- Tab bar -->
-  <div class="flex items-center border-b border-[var(--color-border)] bg-[var(--color-surface-2)] overflow-x-auto">
+  <!-- Tab Bar Header -->
+  <div class="flex items-center border-b border-[var(--color-border)] bg-[var(--color-surface-2)]/90 overflow-x-auto h-9">
     @for (tab of tabs(); track tab) {
       <div
-        class="flex items-center gap-2 px-4 py-2.5 text-xs cursor-pointer border-r border-[var(--color-border)] flex-shrink-0 transition-colors group"
+        class="group flex items-center gap-2 px-3.5 h-full text-xs cursor-pointer border-r border-[var(--color-border)] flex-shrink-0 transition-all relative"
         [class.bg-[var(--color-surface)]]="activeTab() === tab"
-        [class.border-t-2]="activeTab() === tab"
-        [class.border-t-[var(--color-accent)]]="activeTab() === tab"
-        [class.text-[var(--color-text)]]="activeTab() === tab"
+        [class.text-white]="activeTab() === tab"
         [class.text-[var(--color-text-muted)]]="activeTab() !== tab"
-        [class.hover:bg-[var(--color-surface-3)]]="activeTab() !== tab"
+        [class.hover:bg-white/5]="activeTab() !== tab"
         (click)="selectTab(tab)">
-        <span>{{ tab }}</span>
+        
+        <!-- Active Tab Top Highlight Line -->
+        @if (activeTab() === tab) {
+          <div class="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-indigo-500 to-purple-500"></div>
+        }
+
+        <!-- Icon + Title -->
+        <span class="text-xs leading-none">{{ getFileIcon(tab) }}</span>
+        <span class="font-mono text-[11px] truncate">{{ tab }}</span>
+
+        <!-- Close Tab Button -->
         <button
           (click)="closeTab(tab, $event)"
-          class="opacity-0 group-hover:opacity-100 hover:text-red-400 transition-opacity text-[var(--color-text-muted)] leading-none">
-          ×
+          title="Close tab"
+          class="opacity-0 group-hover:opacity-100 hover:text-rose-400 transition-opacity p-0.5 rounded leading-none text-xs ml-1 hover:bg-rose-500/10">
+          ✕
         </button>
       </div>
     }
+    
     @if (tabs().length === 0) {
-      <div class="px-4 py-2.5 text-xs text-[var(--color-text-muted)] italic">No files open</div>
-    }
-  </div>
-
-  <!-- Editor area -->
-  <div class="flex-1 overflow-auto p-4">
-    @if (tabs().length > 0) {
-      <!-- Placeholder — swap this div for <ngx-monaco-editor> -->
-      <pre class="text-sm leading-relaxed text-[var(--color-text-muted)] font-mono whitespace-pre-wrap m-0"
-        style="font-family: var(--font-mono);">{{ placeholderCode() }}</pre>
-    } @else {
-      <!-- Empty state -->
-      <div class="h-full flex flex-col items-center justify-center gap-4 opacity-40">
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-16 h-16 text-[var(--color-border)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
-        </svg>
-        <p class="text-sm text-[var(--color-text-muted)]">Open a file to start editing</p>
+      <div class="px-4 text-xs text-[var(--color-text-muted)] italic font-mono flex items-center h-full">
+        No active file open
       </div>
     }
   </div>
 
-  <!-- Status bar -->
-  <div class="flex items-center justify-between px-4 py-1 bg-[var(--color-surface-2)] border-t border-[var(--color-border)] text-[10px] text-[var(--color-text-muted)]">
-    <span>TypeScript</span>
-    <span class="flex items-center gap-3">
+  <!-- Code Editor Body (Gutter + Code Lines) -->
+  <div class="flex-1 overflow-auto flex bg-[#0c0e17] font-mono text-xs text-[var(--color-text)]">
+    @if (tabs().length > 0) {
+      <!-- Line Number Gutter -->
+      <div class="py-3 px-3 border-r border-[var(--color-border)] bg-[#080911] text-[var(--color-text-muted)] opacity-50 text-right select-none font-mono text-[11px] leading-relaxed">
+        @for (num of getLineNumbers(); track num) {
+          <div>{{ num }}</div>
+        }
+      </div>
+
+      <!-- Monospaced Code Container -->
+      <div class="flex-1 p-3 overflow-x-auto">
+        <pre class="m-0 font-mono text-[12px] leading-relaxed text-[var(--color-text)] whitespace-pre">{{ getCurrentCode() }}</pre>
+      </div>
+    } @else {
+      <!-- Empty State -->
+      <div class="w-full h-full flex flex-col items-center justify-center gap-3 text-center opacity-40">
+        <div class="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center border border-white/10">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-[var(--color-text-muted)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+          </svg>
+        </div>
+        <div>
+          <p class="text-xs font-medium text-[var(--color-text-muted)]">No file currently active</p>
+          <p class="text-[10px] text-[var(--color-text-muted)] mt-1">Select a file from the explorer sidebar to begin editing</p>
+        </div>
+      </div>
+    }
+  </div>
+
+  <!-- Status Bar Footer -->
+  <div class="flex items-center justify-between px-3 py-1 bg-[var(--color-surface-2)] border-t border-[var(--color-border)] text-[10px] text-[var(--color-text-muted)] font-mono flex-shrink-0">
+    <div class="flex items-center gap-2">
+      <span class="flex items-center gap-1">
+        <span class="w-1.5 h-1.5 rounded-full bg-indigo-400"></span>
+        {{ activeTab() ? activeTab().split('.').pop()?.toUpperCase() : 'PLAIN TEXT' }}
+      </span>
+    </div>
+    
+    <div class="flex items-center gap-4">
       <span>Ln 1, Col 1</span>
       <span>UTF-8</span>
-      <span class="text-[var(--color-accent)]">✓ Ready</span>
-    </span>
+      <span class="text-emerald-400 font-semibold flex items-center gap-1">
+        <span>✓</span> Ready
+      </span>
+    </div>
   </div>
 </div>

@@ -1,22 +1,21 @@
-<div class="flex flex-col h-full bg-[var(--color-surface-2)]">
+<div class="flex flex-col h-full bg-[var(--color-surface-2)]/90 select-none">
 
   <!-- Header -->
-  <div class="flex items-center justify-between px-4 py-3 border-b border-[var(--color-border)]">
-    <div class="flex items-center gap-2">
-      <div class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></div>
-      <span class="text-sm font-semibold text-[var(--color-text)]">AI Assistant</span>
-      <span class="text-xs text-[var(--color-text-muted)] bg-[var(--color-surface-3)] px-2 py-0.5 rounded-full">gemma-4-31b-it</span>
+  <div class="flex items-center justify-between px-4 py-3 border-b border-[var(--color-border)] bg-[var(--color-surface-3)]/40 flex-shrink-0">
+    <div class="flex items-center gap-2.5">
+      <div class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse shadow-sm shadow-emerald-400/50"></div>
+      <span class="text-xs font-bold text-white tracking-tight">AI Assistant</span>
+      <span class="text-[10px] font-mono text-indigo-300 bg-indigo-500/15 border border-indigo-500/20 px-2 py-0.5 rounded-full font-medium">
+        Gemma Agent
+      </span>
     </div>
+    
     <div class="flex items-center gap-2">
-      <!-- Working dir indicator -->
-      @if (sessionService.workingDir()) {
-        <span class="text-[10px] text-[var(--color-text-muted)] bg-[var(--color-surface-3)] px-2 py-0.5 rounded-full font-mono truncate max-w-32"
-          [title]="sessionService.workingDir()">
-          {{ sessionService.workingDir().split('/').pop() }}
-        </span>
-      }
-      <button (click)="clearChat()" title="Clear conversation"
-        class="text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition-colors p-1 rounded hover:bg-[var(--color-surface-3)]">
+      <!-- Clear conversation -->
+      <button
+        (click)="clearChat()"
+        title="Clear Conversation"
+        class="text-[var(--color-text-muted)] hover:text-rose-400 transition-colors p-1.5 rounded-lg hover:bg-white/5 flex items-center justify-center">
         <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
           <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
         </svg>
@@ -24,26 +23,45 @@
     </div>
   </div>
 
-  <!-- Messages -->
-  <div #messageList class="flex-1 overflow-y-auto px-4 py-4 space-y-3 scroll-smooth">
+  <!-- Message Stream Container -->
+  <div #messageList class="flex-1 overflow-y-auto px-4 py-4 space-y-4 scroll-smooth">
 
-    <!-- Empty state -->
+    <!-- Empty state with Starter Prompt Chips -->
     @if (messages().length === 0) {
-      <div class="flex flex-col items-center justify-center h-full text-center gap-3 opacity-50">
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-10 h-10 text-[var(--color-accent)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
-        </svg>
-        <div>
-          <p class="text-sm font-medium text-[var(--color-text-muted)]">Ready to code</p>
-          <p class="text-xs text-[var(--color-text-muted)] mt-1">Ask me to read, write, or run anything in your project</p>
+      <div class="flex flex-col items-center justify-center h-full text-center px-2 py-8 animate-fade-in">
+        <div class="w-12 h-12 rounded-2xl bg-indigo-500/15 border border-indigo-500/30 flex items-center justify-center mb-4 text-indigo-400 shadow-lg shadow-indigo-500/10">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
+          </svg>
+        </div>
+        <p class="text-sm font-bold text-white tracking-tight">Ready to collaborate</p>
+        <p class="text-xs text-[var(--color-text-muted)] mt-1 max-w-xs leading-relaxed">
+          Ask me to edit code, explain features, execute tools, or inspect project files.
+        </p>
+
+        <!-- Quick Starter Prompts -->
+        <div class="w-full mt-6 space-y-2">
+          <span class="text-[10px] font-semibold uppercase tracking-wider text-[var(--color-text-muted)] block text-left px-1">
+            Suggested Prompts
+          </span>
+          @for (prompt of samplePrompts(); track prompt) {
+            <button
+              (click)="sendQuickPrompt(prompt)"
+              class="w-full text-left p-2.5 rounded-xl bg-[var(--color-surface-3)]/60 hover:bg-indigo-500/15 border border-[var(--color-border)] hover:border-indigo-500/30 text-xs text-[var(--color-text-muted)] hover:text-indigo-200 transition-all flex items-center justify-between group">
+              <span class="truncate">{{ prompt }}</span>
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-indigo-400 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+              </svg>
+            </button>
+          }
         </div>
       </div>
     }
 
-    <!-- Message list -->
+    <!-- Messages -->
     @for (msg of messages(); track trackById($index, msg)) {
 
-      <!-- Tool event row -->
+      <!-- Tool event card -->
       @if (isToolMsg(msg)) {
         <app-tool-event
           [toolName]="msg.toolName || ''"
@@ -53,67 +71,87 @@
           [isStreaming]="msg.streaming">
         </app-tool-event>
       } @else {
-        <!-- Chat bubble -->
-        <div class="flex gap-2.5" [class.flex-row-reverse]="msg.role === 'user'">
-          <div class="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold mt-0.5"
-            [class.bg-[var(--color-accent)]]="msg.role === 'model'"
-            [class.bg-[var(--color-surface-4)]]="msg.role === 'user'">
+        <!-- Chat message bubble row -->
+        <div class="flex gap-3 animate-fade-in" [class.flex-row-reverse]="msg.role === 'user'">
+          <!-- Avatar Icon -->
+          <div class="flex-shrink-0 w-7 h-7 rounded-xl flex items-center justify-center text-[11px] font-bold shadow-md"
+            [class.bg-gradient-to-tr]="msg.role === 'model'"
+            [class.from-indigo-600]="msg.role === 'model'"
+            [class.to-purple-600]="msg.role === 'model'"
+            [class.text-white]="msg.role === 'model'"
+            [class.bg-[var(--color-surface-4)]]="msg.role === 'user'"
+            [class.text-[var(--color-text-muted)]]="msg.role === 'user'"
+            [class.border]="msg.role === 'user'"
+            [class.border-white/10]="msg.role === 'user'">
             {{ msg.role === 'user' ? 'U' : 'AI' }}
           </div>
-          <div class="max-w-[85%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed whitespace-pre-wrap break-words"
+
+          <!-- Message Box -->
+          <div class="max-w-[85%] rounded-2xl px-4 py-3 text-xs leading-relaxed whitespace-pre-wrap break-words shadow-sm font-sans"
             [class.bg-[var(--color-user-bubble)]]="msg.role === 'user'"
+            [class.text-white]="msg.role === 'user'"
+            [class.rounded-tr-xs]="msg.role === 'user'"
             [class.bg-[var(--color-model-bubble)]]="msg.role === 'model'"
+            [class.text-[var(--color-text)]]="msg.role === 'model'"
             [class.border]="msg.role === 'model'"
-            [class.border-[var(--color-border)]]="msg.role === 'model'">
+            [class.border-[var(--color-border)]]="msg.role === 'model'"
+            [class.rounded-tl-xs]="msg.role === 'model'">
             {{ msg.content }}
+            
+            <!-- Streaming Loading Dots -->
             @if (msg.streaming && !msg.content) {
-              <span class="inline-flex gap-1">
-                <span class="w-1.5 h-1.5 rounded-full bg-[var(--color-accent)] animate-bounce" style="animation-delay:0ms"></span>
-                <span class="w-1.5 h-1.5 rounded-full bg-[var(--color-accent)] animate-bounce" style="animation-delay:150ms"></span>
-                <span class="w-1.5 h-1.5 rounded-full bg-[var(--color-accent)] animate-bounce" style="animation-delay:300ms"></span>
+              <span class="inline-flex gap-1 py-1">
+                <span class="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-bounce" style="animation-delay:0ms"></span>
+                <span class="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-bounce" style="animation-delay:150ms"></span>
+                <span class="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-bounce" style="animation-delay:300ms"></span>
               </span>
             }
+            
+            <!-- Streaming Cursor Pulse -->
             @if (msg.streaming && msg.content) {
-              <span class="inline-block w-1.5 h-3.5 ml-0.5 bg-[var(--color-accent)] animate-pulse rounded-sm align-middle"></span>
+              <span class="inline-block w-1.5 h-3.5 ml-1 bg-indigo-400 animate-pulse rounded-sm align-middle"></span>
             }
           </div>
         </div>
       }
     }
 
-    <!-- Error -->
+    <!-- Error Banner -->
     @if (errorMsg()) {
-      <div class="flex items-center gap-2 text-red-400 text-xs bg-red-950/30 border border-red-900/50 rounded-lg px-3 py-2">
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+      <div class="flex items-center gap-2 text-rose-300 text-xs bg-rose-950/40 border border-rose-500/30 rounded-xl px-3 py-2.5 shadow-md">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 flex-shrink-0 text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
           <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
         </svg>
-        {{ errorMsg() }}
+        <span class="leading-normal">{{ errorMsg() }}</span>
       </div>
     }
   </div>
 
-  <!-- Input -->
-  <div class="px-4 py-3 border-t border-[var(--color-border)]">
-    <div class="flex items-end gap-2 bg-[var(--color-surface-3)] rounded-xl border border-[var(--color-border)] focus-within:border-[var(--color-accent)] transition-colors">
+  <!-- Chat Input Box -->
+  <div class="px-4 py-3 border-t border-[var(--color-border)] bg-[var(--color-surface-3)]/30 flex-shrink-0">
+    <div class="flex items-end gap-2 bg-[var(--color-surface-3)]/90 rounded-2xl border border-[var(--color-border)] focus-within:border-[var(--color-accent)] focus-within:ring-1 focus-within:ring-[var(--color-accent)] transition-all shadow-inner">
       <textarea
         id="chat-input"
         [value]="userInput()"
         (input)="onInputChange($any($event.target).value)"
         (keydown)="onKeyDown($event)"
         [disabled]="isStreaming()"
-        placeholder="Ask the agent to do something…"
+        placeholder="Ask CodeAgent to edit files or run commands…"
         rows="1"
-        class="flex-1 bg-transparent resize-none px-4 py-3 text-sm text-[var(--color-text)] placeholder-[var(--color-text-muted)] outline-none leading-relaxed max-h-40"
-        style="font-family: var(--font-sans);">
+        class="flex-1 bg-transparent resize-none px-4 py-3 text-xs text-white placeholder-[var(--color-text-muted)] outline-none leading-relaxed max-h-36 font-sans">
       </textarea>
-      <button id="send-button" (click)="send()"
+      <button
+        id="send-button"
+        (click)="send()"
         [disabled]="!userInput().trim() || isStreaming()"
-        class="m-2 p-2 rounded-lg bg-[var(--color-accent)] text-white disabled:opacity-30 disabled:cursor-not-allowed hover:bg-[var(--color-accent-hover)] transition-colors flex-shrink-0">
+        class="m-2 p-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 text-white disabled:opacity-30 disabled:cursor-not-allowed hover:from-indigo-500 hover:to-purple-500 transition-all flex-shrink-0 shadow-md shadow-indigo-600/20 active:scale-95">
         <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
           <path stroke-linecap="round" stroke-linejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
         </svg>
       </button>
     </div>
-    <p class="text-[10px] text-[var(--color-text-muted)] mt-1.5 text-center">Powered by Gemma · Enter to send</p>
+    <p class="text-[10px] text-[var(--color-text-muted)] mt-2 text-center font-mono opacity-60">
+      Press Enter to send · Shift+Enter for new line
+    </p>
   </div>
 </div>

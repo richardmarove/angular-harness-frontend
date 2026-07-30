@@ -17,6 +17,15 @@ export class SessionSetupComponent {
   readonly error = this.sessionService.error;
   readonly workingDir = signal('');
 
+  readonly presets = signal([
+    '/home/rickymarove/angular-learning/angular-harness',
+    '/home/rickymarove/angular-learning/angular-harness/client',
+  ]);
+
+  selectPreset(preset: string): void {
+    this.workingDir.set(preset);
+  }
+
   onDirChange(value: string): void {
     this.workingDir.set(value);
   }

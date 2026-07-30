@@ -1,77 +1,90 @@
-<!-- Tool event row — collapsible -->
-<div class="my-1 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-3)] overflow-hidden text-xs font-mono">
+<!-- Tool Event Card (Collapsible) -->
+<div class="my-1.5 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-3)]/70 overflow-hidden text-xs font-mono shadow-sm">
 
-  <!-- Header (always visible) -->
+  <!-- Header Bar -->
   <button
     (click)="toggle()"
-    class="w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-[var(--color-surface-4)] transition-colors">
+    class="w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-white/5 transition-colors">
 
-    <!-- Spinner or chevron -->
+    <!-- Expand Chevron or Spinner -->
     @if (isStreaming) {
-      <svg class="w-3 h-3 animate-spin flex-shrink-0 text-[var(--color-accent)]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+      <svg class="w-3.5 h-3.5 animate-spin flex-shrink-0 text-indigo-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
       </svg>
     } @else {
-      <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 flex-shrink-0 text-[var(--color-text-muted)] transition-transform"
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 flex-shrink-0 text-[var(--color-text-muted)] transition-transform duration-200"
         [class.rotate-90]="expanded()"
         fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
         <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
       </svg>
     }
 
-    <!-- Tool name badge -->
-    <span class="px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider"
-      [class.bg-indigo-500/20]="!toolError"
+    <!-- Tool Name Badge -->
+    <span class="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider border"
+      [class.bg-indigo-500/15]="!toolError"
       [class.text-indigo-300]="!toolError"
-      [class.bg-red-500/20]="toolError"
-      [class.text-red-300]="toolError">
-      {{ toolName }}
+      [class.border-indigo-500/30]="!toolError"
+      [class.bg-rose-500/15]="toolError"
+      [class.text-rose-300]="toolError"
+      [class.border-rose-500/30]="toolError">
+      🛠️ {{ toolName }}
     </span>
 
-    <!-- Args preview -->
+    <!-- Arguments Preview -->
     @if (argsPreview && !expanded()) {
-      <span class="text-[var(--color-text-muted)] truncate">{{ argsPreview }}</span>
+      <span class="text-[var(--color-text-muted)] truncate text-[11px] font-mono opacity-80">{{ argsPreview }}</span>
     }
 
-    <!-- Status icon -->
-    <span class="ml-auto flex-shrink-0">
+    <!-- Status Badge -->
+    <span class="ml-auto flex-shrink-0 text-[10px] font-semibold">
       @if (isStreaming) {
-        <span class="text-[var(--color-text-muted)]">running…</span>
+        <span class="text-indigo-400 animate-pulse">Running…</span>
       } @else if (toolError) {
-        <span class="text-red-400">✗ error</span>
+        <span class="text-rose-400 font-mono">✗ Error</span>
       } @else if (toolResult) {
-        <span class="text-emerald-400">✓ done</span>
+        <span class="text-emerald-400 font-mono">✓ Success</span>
       }
     </span>
   </button>
 
-  <!-- Expanded body -->
+  <!-- Expanded Details Body -->
   @if (expanded()) {
-    <div class="border-t border-[var(--color-border)] divide-y divide-[var(--color-border)]">
+    <div class="border-t border-[var(--color-border)] divide-y divide-[var(--color-border)] bg-[#0a0c14]">
 
-      <!-- Args section -->
+      <!-- Arguments Section -->
       @if (toolArgs && (toolArgs | keyvalue).length > 0) {
-        <div class="px-3 py-2">
-          <div class="text-[10px] text-[var(--color-text-muted)] uppercase tracking-wider mb-1">Arguments</div>
-          @for (entry of toolArgs | keyvalue; track entry.key) {
-            <div class="flex gap-2">
-              <span class="text-[var(--color-accent-hover)]">{{ entry.key }}:</span>
-              <span class="text-[var(--color-text-muted)] truncate">{{ entry.value }}</span>
-            </div>
-          }
+        <div class="p-3">
+          <div class="text-[10px] text-[var(--color-text-muted)] uppercase tracking-wider font-sans font-bold mb-1.5">
+            Tool Arguments
+          </div>
+          <div class="space-y-1">
+            @for (entry of toolArgs | keyvalue; track entry.key) {
+              <div class="flex gap-2 text-[11px]">
+                <span class="text-indigo-400 font-semibold">{{ entry.key }}:</span>
+                <span class="text-white/90 truncate font-mono bg-white/5 px-1.5 py-0.5 rounded border border-white/5">{{ entry.value }}</span>
+              </div>
+            }
+          </div>
         </div>
       }
 
-      <!-- Result section -->
+      <!-- Result / Error Output Section -->
       @if (toolResult || toolError) {
-        <div class="px-3 py-2">
-          <div class="text-[10px] uppercase tracking-wider mb-1"
-            [class.text-emerald-400]="!toolError"
-            [class.text-red-400]="toolError">
-            {{ toolError ? 'Error' : 'Result' }}
+        <div class="p-3">
+          <div class="flex items-center justify-between mb-1.5">
+            <span class="text-[10px] uppercase font-sans font-bold tracking-wider"
+              [class.text-emerald-400]="!toolError"
+              [class.text-rose-400]="toolError">
+              {{ toolError ? 'Execution Error' : 'Output Payload' }}
+            </span>
+            <button
+              (click)="copyOutput()"
+              class="text-[10px] font-sans px-2 py-0.5 rounded bg-white/5 hover:bg-white/10 text-[var(--color-text-muted)] hover:text-white transition-colors border border-white/5">
+              {{ copied() ? '✓ Copied' : 'Copy Output' }}
+            </button>
           </div>
-          <pre class="text-[var(--color-text-muted)] whitespace-pre-wrap break-all leading-relaxed max-h-48 overflow-y-auto">{{ toolError || toolResult }}</pre>
+          <pre class="text-[11px] text-white/80 whitespace-pre-wrap break-all leading-relaxed max-h-48 overflow-y-auto bg-black/40 p-2.5 rounded-lg border border-white/5 font-mono m-0">{{ toolError || toolResult }}</pre>
         </div>
       }
     </div>

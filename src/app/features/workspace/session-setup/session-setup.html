@@ -1,75 +1,111 @@
-<!-- Full-screen overlay -->
-<div class="fixed inset-0 z-50 flex items-center justify-center bg-[var(--color-surface)]/95 backdrop-blur-sm">
-  <div class="w-full max-w-md px-6">
+<!-- Full-screen backdrop overlay -->
+<div class="fixed inset-0 z-50 flex items-center justify-center bg-[#090a0f]/90 backdrop-blur-md p-4 animate-fade-in">
+  
+  <!-- Glowing background ambient light -->
+  <div class="absolute w-96 h-96 bg-indigo-600/20 rounded-full blur-3xl pointer-events-none -translate-y-12"></div>
+  <div class="absolute w-80 h-80 bg-purple-600/15 rounded-full blur-3xl pointer-events-none translate-x-32 translate-y-20"></div>
 
-    <!-- Logo -->
-    <div class="flex items-center justify-center gap-3 mb-8">
-      <div class="w-10 h-10 rounded-xl bg-[var(--color-accent)] flex items-center justify-center shadow-lg shadow-indigo-500/30">
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+  <div class="w-full max-w-lg relative z-10">
+
+    <!-- Hero Branding -->
+    <div class="flex flex-col items-center text-center mb-8">
+      <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-indigo-600 via-purple-600 to-pink-500 flex items-center justify-center shadow-xl shadow-indigo-500/30 mb-4 border border-white/20 animate-pulse-glow">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
           <path stroke-linecap="round" stroke-linejoin="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
         </svg>
       </div>
-      <div>
-        <h1 class="text-xl font-bold text-[var(--color-text)]">CodeAgent</h1>
-        <p class="text-xs text-[var(--color-text-muted)]">AI-Powered Coding Assistant</p>
-      </div>
+      <h1 class="text-2xl font-extrabold tracking-tight text-white">CodeAgent Workspace</h1>
+      <p class="text-xs text-[var(--color-text-muted)] mt-1 max-w-sm">
+        Connect to a local directory to enable full file editing, agent operations, and live chat features.
+      </p>
     </div>
 
-    <!-- Card -->
-    <div class="bg-[var(--color-surface-2)] rounded-2xl border border-[var(--color-border)] p-6 shadow-2xl">
-      <h2 class="text-base font-semibold text-[var(--color-text)] mb-1">Start a Session</h2>
-      <p class="text-sm text-[var(--color-text-muted)] mb-5">
-        Choose a working directory. The agent will read and write files relative to this path.
-      </p>
+    <!-- Main Glass Card -->
+    <div class="glass-card rounded-2xl p-6 border border-white/10 shadow-2xl backdrop-blur-xl">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-sm font-semibold text-white flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-indigo-400"></span>
+          Initialize Working Session
+        </h2>
+        <span class="text-[10px] uppercase font-mono px-2 py-0.5 rounded bg-white/5 text-[var(--color-text-muted)] border border-white/5">
+          Step 1 of 1
+        </span>
+      </div>
 
-      <!-- Input -->
-      <label class="block text-xs font-medium text-[var(--color-text-muted)] mb-1.5 uppercase tracking-wider">
-        Working Directory
-      </label>
-      <input
-        id="working-dir-input"
-        type="text"
-        [value]="workingDir()"
-        (input)="onDirChange($any($event.target).value)"
-        (keydown)="onKeyDown($event)"
-        placeholder="/home/you/my-project"
-        [disabled]="isLoading()"
-        class="w-full bg-[var(--color-surface-3)] border border-[var(--color-border)] rounded-lg px-4 py-3 text-sm text-[var(--color-text)] placeholder-[var(--color-text-muted)] outline-none focus:border-[var(--color-accent)] transition-colors font-mono"
-      />
-
-      <!-- Error -->
-      @if (error()) {
-        <div class="flex items-start gap-2 mt-3 text-red-400 text-xs bg-red-950/30 border border-red-900/40 rounded-lg px-3 py-2">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+      <!-- Input Field -->
+      <div class="space-y-2 mb-4">
+        <label class="block text-[11px] font-semibold text-[var(--color-text-muted)] uppercase tracking-wider">
+          Target Project Path
+        </label>
+        <div class="relative flex items-center">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-[var(--color-text-muted)] absolute left-3.5 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
           </svg>
-          <span>{{ error() }}</span>
+          <input
+            id="working-dir-input"
+            type="text"
+            [value]="workingDir()"
+            (input)="onDirChange($any($event.target).value)"
+            (keydown)="onKeyDown($event)"
+            placeholder="/path/to/your/project"
+            [disabled]="isLoading()"
+            class="w-full bg-[var(--color-surface-3)]/90 border border-[var(--color-border)] rounded-xl pl-10 pr-4 py-3 text-xs text-white placeholder-[var(--color-text-muted)] outline-none focus:border-[var(--color-accent)] focus:ring-1 focus:ring-[var(--color-accent)] transition-all font-mono shadow-inner"
+          />
+        </div>
+      </div>
+
+      <!-- Quick Preset Suggestions -->
+      @if (presets().length > 0) {
+        <div class="mb-5">
+          <span class="text-[10px] font-medium text-[var(--color-text-muted)] uppercase tracking-wider block mb-1.5">
+            Quick Select Paths
+          </span>
+          <div class="flex flex-wrap gap-1.5">
+            @for (p of presets(); track p) {
+              <button
+                type="button"
+                (click)="selectPreset(p)"
+                class="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-indigo-500/15 border border-white/5 hover:border-indigo-500/30 text-[11px] font-mono text-[var(--color-text-muted)] hover:text-indigo-300 transition-all truncate max-w-full text-left">
+                📁 {{ p }}
+              </button>
+            }
+          </div>
         </div>
       }
 
-      <!-- Submit -->
+      <!-- Error State -->
+      @if (error()) {
+        <div class="flex items-start gap-2.5 mb-4 text-rose-300 text-xs bg-rose-950/40 border border-rose-500/30 rounded-xl p-3 shadow-lg">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 flex-shrink-0 text-rose-400 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+          </svg>
+          <span class="leading-relaxed">{{ error() }}</span>
+        </div>
+      }
+
+      <!-- Submit Action Button -->
       <button
         id="start-session-btn"
         (click)="startSession()"
         [disabled]="!workingDir().trim() || isLoading()"
-        class="w-full mt-4 py-3 rounded-xl text-sm font-semibold bg-[var(--color-accent)] text-white hover:bg-[var(--color-accent-hover)] disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2">
+        class="w-full py-3 px-4 rounded-xl text-xs font-bold tracking-wide bg-gradient-to-r from-indigo-600 via-indigo-500 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-lg shadow-indigo-600/25 flex items-center justify-center gap-2 border border-white/10 active:scale-[0.99]">
         @if (isLoading()) {
-          <svg class="w-4 h-4 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <svg class="w-4 h-4 animate-spin text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
           </svg>
-          Connecting…
+          <span>Connecting Workspace…</span>
         } @else {
           <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
           </svg>
-          Start Session
+          <span>Start Session</span>
         }
       </button>
 
-      <!-- Hint -->
+      <!-- Footer Info -->
       <p class="text-center text-[10px] text-[var(--color-text-muted)] mt-4">
-        The directory must exist on the server's file system
+        Directory must exist on the local file system with read/write permissions.
       </p>
     </div>
   </div>

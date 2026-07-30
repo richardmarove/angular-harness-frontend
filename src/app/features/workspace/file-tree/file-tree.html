@@ -1,31 +1,54 @@
-<div class="flex flex-col h-full bg-[var(--color-surface-2)] select-none">
-  <!-- Header -->
-  <div class="px-3 py-2.5 border-b border-[var(--color-border)] flex items-center gap-2">
-    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-[var(--color-text-muted)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-      <path stroke-linecap="round" stroke-linejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
-    </svg>
-    <span class="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider">Explorer</span>
+<div class="flex flex-col h-full bg-[var(--color-surface-2)]/80 select-none text-xs font-sans">
+  
+  <!-- Explorer Header -->
+  <div class="px-3.5 py-2.5 border-b border-[var(--color-border)] flex items-center justify-between flex-shrink-0 bg-[var(--color-surface-3)]/50">
+    <div class="flex items-center gap-2">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+      </svg>
+      <span class="text-[11px] font-bold text-white uppercase tracking-wider">Explorer</span>
+    </div>
+    
+    <!-- Action buttons -->
+    <div class="flex items-center gap-1">
+      <button
+        (click)="collapseAll()"
+        title="Collapse All Folders"
+        class="p-1 text-[var(--color-text-muted)] hover:text-white rounded hover:bg-white/5 transition-colors">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4 8h16M4 16h16" />
+        </svg>
+      </button>
+    </div>
   </div>
 
-  <!-- Tree -->
-  <div class="flex-1 overflow-y-auto py-2">
+  <!-- Tree Nodes Viewport -->
+  <div class="flex-1 overflow-y-auto py-2 px-1">
     <ng-container *ngTemplateOutlet="treeNodes; context: { nodes: tree(), depth: 0 }"></ng-container>
   </div>
 
+  <!-- Recursive Tree Template -->
   <ng-template #treeNodes let-nodes="nodes" let-depth="depth">
     @for (node of nodes; track node.name) {
       <div
-        class="flex items-center gap-1.5 px-2 py-1 cursor-pointer text-sm rounded mx-1 transition-colors"
-        [style.padding-left.px]="12 + depth * 12"
+        class="group flex items-center gap-1.5 px-2 py-1 cursor-pointer rounded-lg transition-all duration-150 relative my-0.5"
+        [style.padding-left.px]="8 + depth * 14"
         [class.bg-[var(--color-accent-muted)]]="selectedFile() === node.name"
-        [class.text-[var(--color-accent)]]="selectedFile() === node.name"
-        [class.text-[var(--color-text)]]="selectedFile() !== node.name"
-        [class.hover:bg-[var(--color-surface-3)]]="selectedFile() !== node.name"
+        [class.text-indigo-300]="selectedFile() === node.name"
+        [class.font-medium]="selectedFile() === node.name"
+        [class.text-[var(--color-text-muted)]]="selectedFile() !== node.name"
+        [class.hover:bg-white/5]="selectedFile() !== node.name"
+        [class.hover:text-white]="selectedFile() !== node.name"
         (click)="selectFile(node)">
 
-        <!-- Folder chevron -->
+        <!-- Left Active Indicator Stripe -->
+        @if (selectedFile() === node.name) {
+          <div class="absolute left-0 top-1 bottom-1 w-0.5 bg-indigo-500 rounded-r"></div>
+        }
+
+        <!-- Folder chevron icon -->
         @if (node.type === 'folder') {
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 flex-shrink-0 text-[var(--color-text-muted)] transition-transform"
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 flex-shrink-0 text-[var(--color-text-muted)] group-hover:text-white transition-transform duration-200"
             [class.rotate-90]="node.expanded"
             fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
             <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
@@ -34,8 +57,8 @@
           <span class="w-3 flex-shrink-0"></span>
         }
 
-        <!-- Icon -->
-        <span class="text-xs leading-none">
+        <!-- File Type Icon -->
+        <span class="text-xs leading-none flex-shrink-0">
           @if (node.type === 'folder') {
             {{ node.expanded ? '📂' : '📁' }}
           } @else {
@@ -43,13 +66,15 @@
           }
         </span>
 
-        <!-- Name -->
-        <span class="truncate text-xs">{{ node.name }}</span>
+        <!-- Node Label -->
+        <span class="truncate text-[11px] font-mono tracking-tight leading-normal">{{ node.name }}</span>
       </div>
 
-      <!-- Children -->
+      <!-- Recursive Sub-tree -->
       @if (node.type === 'folder' && node.expanded && node.children) {
-        <ng-container *ngTemplateOutlet="treeNodes; context: { nodes: node.children, depth: depth + 1 }"></ng-container>
+        <div class="border-l border-white/5 ml-3">
+          <ng-container *ngTemplateOutlet="treeNodes; context: { nodes: node.children, depth: depth + 1 }"></ng-container>
+        </div>
       }
     }
   </ng-template>

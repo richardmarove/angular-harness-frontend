@@ -1,7 +1,7 @@
 import { Component, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
-interface FileNode {
+export interface FileNode {
   name: string;
   type: 'file' | 'folder';
   children?: FileNode[];
@@ -33,6 +33,7 @@ export class FileTreeComponent {
             { name: 'app.ts', type: 'file' },
             { name: 'app.html', type: 'file' },
             { name: 'app.routes.ts', type: 'file' },
+            { name: 'app.config.ts', type: 'file' },
           ],
         },
         { name: 'main.ts', type: 'file' },
@@ -42,11 +43,12 @@ export class FileTreeComponent {
     { name: 'angular.json', type: 'file' },
     { name: 'package.json', type: 'file' },
     { name: 'tsconfig.json', type: 'file' },
+    { name: 'README.md', type: 'file' },
   ]);
 
   toggleFolder(node: FileNode): void {
     node.expanded = !node.expanded;
-    this.tree.update((t) => [...t]); // trigger re-render
+    this.tree.update((t) => [...t]);
   }
 
   selectFile(node: FileNode): void {
@@ -57,12 +59,30 @@ export class FileTreeComponent {
     }
   }
 
+  collapseAll(): void {
+    const collapseRecursive = (nodes: FileNode[]) => {
+      for (const node of nodes) {
+        if (node.type === 'folder') {
+          node.expanded = false;
+          if (node.children) collapseRecursive(node.children);
+        }
+      }
+    };
+    const updated = [...this.tree()];
+    collapseRecursive(updated);
+    this.tree.set(updated);
+  }
+
   getFileIcon(name: string): string {
-    if (name.endsWith('.ts')) return '🟦';
-    if (name.endsWith('.html')) return '🟧';
-    if (name.endsWith('.css')) return '🎨';
-    if (name.endsWith('.json')) return '🟨';
-    if (name.endsWith('.md')) return '📄';
+    const lower = name.toLowerCase();
+    if (lower.endsWith('.ts')) return '🔷';
+    if (lower.endsWith('.html')) return '🟧';
+    if (lower.endsWith('.css') || lower.endsWith('.scss')) return '🎨';
+    if (lower.endsWith('.json')) return '🟨';
+    if (lower.endsWith('.md')) return '📝';
+    if (lower.endsWith('.js') || lower.endsWith('.mjs')) return '🟨';
+    if (lower.endsWith('.svg') || lower.endsWith('.png') || lower.endsWith('.jpg')) return '🖼️';
+    if (lower.includes('config') || lower.startsWith('.')) return '⚙️';
     return '📄';
   }
 }
