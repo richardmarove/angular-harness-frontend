@@ -1,0 +1,76 @@
+<!-- Full-screen overlay -->
+<div class="fixed inset-0 z-50 flex items-center justify-center bg-[var(--color-surface)]/95 backdrop-blur-sm">
+  <div class="w-full max-w-md px-6">
+
+    <!-- Logo -->
+    <div class="flex items-center justify-center gap-3 mb-8">
+      <div class="w-10 h-10 rounded-xl bg-[var(--color-accent)] flex items-center justify-center shadow-lg shadow-indigo-500/30">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+        </svg>
+      </div>
+      <div>
+        <h1 class="text-xl font-bold text-[var(--color-text)]">CodeAgent</h1>
+        <p class="text-xs text-[var(--color-text-muted)]">AI-Powered Coding Assistant</p>
+      </div>
+    </div>
+
+    <!-- Card -->
+    <div class="bg-[var(--color-surface-2)] rounded-2xl border border-[var(--color-border)] p-6 shadow-2xl">
+      <h2 class="text-base font-semibold text-[var(--color-text)] mb-1">Start a Session</h2>
+      <p class="text-sm text-[var(--color-text-muted)] mb-5">
+        Choose a working directory. The agent will read and write files relative to this path.
+      </p>
+
+      <!-- Input -->
+      <label class="block text-xs font-medium text-[var(--color-text-muted)] mb-1.5 uppercase tracking-wider">
+        Working Directory
+      </label>
+      <input
+        id="working-dir-input"
+        type="text"
+        [value]="workingDir()"
+        (input)="onDirChange($any($event.target).value)"
+        (keydown)="onKeyDown($event)"
+        placeholder="/home/you/my-project"
+        [disabled]="isLoading()"
+        class="w-full bg-[var(--color-surface-3)] border border-[var(--color-border)] rounded-lg px-4 py-3 text-sm text-[var(--color-text)] placeholder-[var(--color-text-muted)] outline-none focus:border-[var(--color-accent)] transition-colors font-mono"
+      />
+
+      <!-- Error -->
+      @if (error()) {
+        <div class="flex items-start gap-2 mt-3 text-red-400 text-xs bg-red-950/30 border border-red-900/40 rounded-lg px-3 py-2">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+          </svg>
+          <span>{{ error() }}</span>
+        </div>
+      }
+
+      <!-- Submit -->
+      <button
+        id="start-session-btn"
+        (click)="startSession()"
+        [disabled]="!workingDir().trim() || isLoading()"
+        class="w-full mt-4 py-3 rounded-xl text-sm font-semibold bg-[var(--color-accent)] text-white hover:bg-[var(--color-accent-hover)] disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2">
+        @if (isLoading()) {
+          <svg class="w-4 h-4 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+          </svg>
+          Connecting…
+        } @else {
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+          </svg>
+          Start Session
+        }
+      </button>
+
+      <!-- Hint -->
+      <p class="text-center text-[10px] text-[var(--color-text-muted)] mt-4">
+        The directory must exist on the server's file system
+      </p>
+    </div>
+  </div>
+</div>
