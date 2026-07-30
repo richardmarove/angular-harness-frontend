@@ -1,4 +1,4 @@
-import { Component, inject, HostListener } from '@angular/core';
+import { Component, inject, signal, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { FileService } from '../../../core/services/file';
@@ -10,16 +10,27 @@ import { SessionService } from '../../../core/services/session';
   imports: [CommonModule, FormsModule],
   templateUrl: './editor-panel.html',
   styleUrl: './editor-panel.css',
+  host: {
+    'class': 'flex-1 flex flex-col min-h-0 overflow-hidden',
+  },
 })
 export class EditorPanelComponent {
   readonly fileService = inject(FileService);
   readonly sessionService = inject(SessionService);
+  readonly scrollTop = signal(0);
 
   @HostListener('window:keydown', ['$event'])
   handleKeyboardEvent(event: KeyboardEvent): void {
     if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 's') {
       event.preventDefault();
       this.saveCurrentFile();
+    }
+  }
+
+  onEditorScroll(event: Event): void {
+    const target = event.target as HTMLElement;
+    if (target) {
+      this.scrollTop.set(target.scrollTop);
     }
   }
 

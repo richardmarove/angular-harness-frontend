@@ -16,6 +16,9 @@ import { ToolEventComponent } from './tool-event/tool-event';
   imports: [CommonModule, FormsModule, ToolEventComponent],
   templateUrl: './chat-panel.html',
   styleUrl: './chat-panel.css',
+  host: {
+    'class': 'flex-1 flex flex-col min-h-0 overflow-hidden',
+  },
 })
 export class ChatPanelComponent implements AfterViewChecked, OnDestroy {
   @ViewChild('messageList') private messageList!: ElementRef<HTMLDivElement>;

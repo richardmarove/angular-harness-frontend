@@ -1,7 +1,7 @@
-<div class="flex flex-col h-full bg-[#fbf1c7] select-none">
+<div class="flex flex-col h-full min-h-0 bg-[#fbf1c7] select-none">
 
   <!-- Tab Bar Header -->
-  <div class="flex items-center border-b border-[#d5c4a1] bg-[#f2e5bc] overflow-x-auto h-9">
+  <div class="flex items-center border-b border-[#d5c4a1] bg-[#f2e5bc] overflow-x-auto h-9 flex-shrink-0">
     @for (tab of fileService.openTabs(); track tab) {
       <div
         class="group flex items-center gap-2 px-3.5 h-full text-xs cursor-pointer border-r border-[#d5c4a1] flex-shrink-0 transition-all relative"
@@ -52,8 +52,8 @@
     }
   </div>
 
-  <!-- Code Editor Body (Gutter + Live Editable Textarea) -->
-  <div class="flex-1 overflow-hidden flex bg-[#fbf1c7] font-mono text-xs text-[#282828] relative">
+  <!-- Code Editor Body (Single Scrollbar Textarea + Synchronized Gutter) -->
+  <div class="flex-1 min-h-0 overflow-hidden flex bg-[#fbf1c7] font-mono text-xs text-[#282828] relative">
     @if (fileService.openTabs().length > 0 && fileService.activeTab()) {
       @if (fileService.isReadingFile()) {
         <div class="absolute inset-0 flex items-center justify-center bg-[#fbf1c7]/80 z-10 text-xs font-mono text-[#7c6f64] animate-pulse">
@@ -61,22 +61,25 @@
         </div>
       }
 
-      <!-- Line Number Gutter -->
-      <div class="py-3 px-3 border-r border-[#d5c4a1] bg-[#f2e5bc]/50 text-[#7c6f64] opacity-70 text-right select-none font-mono text-[11px] leading-relaxed overflow-hidden flex-shrink-0 min-w-[40px]">
-        @for (num of getLineNumbers(); track num) {
-          <div>{{ num }}</div>
-        }
+      <!-- Line Number Gutter (Fixed height, overflow-hidden, translateY synced) -->
+      <div class="h-full min-h-0 py-3 px-3 border-r border-[#d5c4a1] bg-[#f2e5bc]/50 text-[#7c6f64] opacity-70 text-right select-none font-mono text-[12px] leading-relaxed overflow-hidden flex-shrink-0 min-w-[44px]">
+        <div [style.transform]="'translateY(-' + scrollTop() + 'px)'" class="will-change-transform">
+          @for (num of getLineNumbers(); track num) {
+            <div>{{ num }}</div>
+          }
+        </div>
       </div>
 
-      <!-- Editable Monospaced Textarea -->
-      <div class="flex-1 overflow-auto relative">
+      <!-- Editable Monospaced Textarea (Only Scrolling Element) -->
+      <div class="flex-1 h-full min-h-0 relative">
         <textarea
           id="editor-textarea"
           [value]="getCurrentCode()"
           (input)="onCodeInput($any($event.target).value)"
+          (scroll)="onEditorScroll($event)"
           placeholder="// Start typing code..."
           spellcheck="false"
-          class="w-full h-full p-3 bg-transparent text-[#282828] font-mono text-[12px] leading-relaxed resize-none outline-none whitespace-pre border-none font-normal"
+          class="w-full h-full p-3 bg-transparent text-[#282828] font-mono text-[12px] leading-relaxed resize-none outline-none whitespace-pre border-none font-normal overflow-y-scroll overflow-x-auto block"
         ></textarea>
       </div>
     } @else {
