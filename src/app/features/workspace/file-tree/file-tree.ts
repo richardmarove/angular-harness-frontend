@@ -1,61 +1,63 @@
-import { Component, signal } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-
-export interface FileNode {
-  name: string;
-  type: 'file' | 'folder';
-  children?: FileNode[];
-  expanded?: boolean;
-  icon?: string;
-}
+import { FormsModule } from '@angular/forms';
+import { FileService, FileNode } from '../../../core/services/file';
+import { SessionService } from '../../../core/services/session';
 
 @Component({
   selector: 'app-file-tree',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './file-tree.html',
   styleUrl: './file-tree.css',
 })
 export class FileTreeComponent {
-  readonly selectedFile = signal<string | null>(null);
+  readonly fileService = inject(FileService);
+  readonly sessionService = inject(SessionService);
 
-  readonly tree = signal<FileNode[]>([
-    {
-      name: 'src',
-      type: 'folder',
-      expanded: true,
-      children: [
-        {
-          name: 'app',
-          type: 'folder',
-          expanded: true,
-          children: [
-            { name: 'app.ts', type: 'file' },
-            { name: 'app.html', type: 'file' },
-            { name: 'app.routes.ts', type: 'file' },
-            { name: 'app.config.ts', type: 'file' },
-          ],
-        },
-        { name: 'main.ts', type: 'file' },
-        { name: 'styles.css', type: 'file' },
-      ],
-    },
-    { name: 'angular.json', type: 'file' },
-    { name: 'package.json', type: 'file' },
-    { name: 'tsconfig.json', type: 'file' },
-    { name: 'README.md', type: 'file' },
-  ]);
+  readonly creatingType = signal<'file' | 'folder' | null>(null);
+  readonly newPathInput = signal<string>('');
 
   toggleFolder(node: FileNode): void {
     node.expanded = !node.expanded;
-    this.tree.update((t) => [...t]);
   }
 
   selectFile(node: FileNode): void {
     if (node.type === 'file') {
-      this.selectedFile.set(node.name);
+      const id = this.sessionService.sessionId();
+      if (id) {
+        this.fileService.openFile(id, node.path);
+      }
     } else {
       this.toggleFolder(node);
+    }
+  }
+
+  refreshTree(): void {
+    const id = this.sessionService.sessionId();
+    if (id) {
+      this.fileService.loadTree(id);
+    }
+  }
+
+  startCreate(type: 'file' | 'folder'): void {
+    this.creatingType.set(type);
+    this.newPathInput.set('');
+  }
+
+  cancelCreate(): void {
+    this.creatingType.set(null);
+    this.newPathInput.set('');
+  }
+
+  async confirmCreate(): Promise<void> {
+    const type = this.creatingType();
+    const relPath = this.newPathInput().trim();
+    const id = this.sessionService.sessionId();
+
+    if (type && relPath && id) {
+      await this.fileService.createNode(id, relPath, type);
+      this.cancelCreate();
     }
   }
 
@@ -68,9 +70,9 @@ export class FileTreeComponent {
         }
       }
     };
-    const updated = [...this.tree()];
+    const updated = [...this.fileService.tree()];
     collapseRecursive(updated);
-    this.tree.set(updated);
+    this.fileService.tree.set(updated);
   }
 
   getFileType(name: string): 'ts' | 'html' | 'css' | 'json' | 'md' | 'config' | 'default' {

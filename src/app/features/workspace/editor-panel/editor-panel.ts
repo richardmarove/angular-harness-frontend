@@ -1,79 +1,95 @@
-import { Component, signal } from '@angular/core';
+import { Component, inject, signal, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { FileService } from '../../../core/services/file';
+import { SessionService } from '../../../core/services/session';
 
 @Component({
   selector: 'app-editor-panel',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './editor-panel.html',
   styleUrl: './editor-panel.css',
+  host: {
+    'class': 'flex-1 flex flex-col min-h-0 overflow-hidden',
+  },
 })
 export class EditorPanelComponent {
-  readonly activeTab = signal('main.ts');
-  readonly tabs = signal(['main.ts', 'styles.css', 'app.routes.ts']);
+  readonly fileService = inject(FileService);
+  readonly sessionService = inject(SessionService);
+  readonly scrollTop = signal(0);
 
-  readonly fileContents: Record<string, string> = {
-    'main.ts': `import { bootstrapApplication } from '@angular/platform-browser';
-import { appConfig } from './app/app.config';
-import { WorkspaceComponent } from './app/features/workspace/workspace/workspace';
-
-bootstrapApplication(WorkspaceComponent, appConfig)
-  .catch((err) => console.error(err));
-`,
-    'styles.css': `@import "tailwindcss";
-
-/* Gruvbox Light Palette Tokens */
-@theme {
-  --color-surface: #fbf1c7;
-  --color-surface-2: #f2e5bc;
-  --color-accent: #282828;
-}
-
-html, body {
-  background-color: var(--color-surface);
-  font-family: "Plus Jakarta Sans", sans-serif;
-}
-`,
-    'app.routes.ts': `import { Routes } from '@angular/router';
-
-export const routes: Routes = [
-  {
-    path: '',
-    loadComponent: () => import('./features/workspace/workspace/workspace').then((m) => m.WorkspaceComponent),
-  },
-];
-`,
-  };
-
-  selectTab(tab: string): void {
-    this.activeTab.set(tab);
+  @HostListener('window:keydown', ['$event'])
+  handleKeyboardEvent(event: KeyboardEvent): void {
+    if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 's') {
+      event.preventDefault();
+      this.saveCurrentFile();
+    }
   }
 
-  closeTab(tab: string, event: MouseEvent): void {
+  onEditorScroll(event: Event): void {
+    const target = event.target as HTMLElement;
+    if (target) {
+      this.scrollTop.set(target.scrollTop);
+    }
+  }
+
+  selectTab(path: string): void {
+    const id = this.sessionService.sessionId();
+    if (id) {
+      this.fileService.openFile(id, path);
+    }
+  }
+
+  closeTab(path: string, event: MouseEvent): void {
     event.stopPropagation();
-    this.tabs.update((t) => t.filter((x) => x !== tab));
-    if (this.activeTab() === tab) {
-      const remaining = this.tabs();
-      this.activeTab.set(remaining[remaining.length - 1] ?? '');
+    this.fileService.closeTab(path);
+  }
+
+  onCodeInput(content: string): void {
+    const active = this.fileService.activeTab();
+    if (active) {
+      this.fileService.updateBuffer(active, content);
+    }
+  }
+
+  saveCurrentFile(): void {
+    const active = this.fileService.activeTab();
+    const id = this.sessionService.sessionId();
+    if (active && id) {
+      this.fileService.saveFile(id, active);
     }
   }
 
   getCurrentCode(): string {
-    const active = this.activeTab();
+    const active = this.fileService.activeTab();
     if (!active) return '';
-    return this.fileContents[active] ?? `// ${active}\n// File ready for editing.`;
+    return this.fileService.fileBuffers()[active] ?? '';
   }
 
-  getFileType(name: string): 'ts' | 'css' | 'html' | 'json' | 'default' {
-    if (name.endsWith('.ts')) return 'ts';
-    if (name.endsWith('.css')) return 'css';
-    if (name.endsWith('.html')) return 'html';
-    if (name.endsWith('.json')) return 'json';
+  isCurrentDirty(): boolean {
+    const active = this.fileService.activeTab();
+    return this.fileService.isDirty(active);
+  }
+
+  getFileType(path: string): 'ts' | 'css' | 'html' | 'json' | 'default' {
+    if (!path) return 'default';
+    const lower = path.toLowerCase();
+    if (lower.endsWith('.ts')) return 'ts';
+    if (lower.endsWith('.css') || lower.endsWith('.scss')) return 'css';
+    if (lower.endsWith('.html')) return 'html';
+    if (lower.endsWith('.json')) return 'json';
     return 'default';
+  }
+
+  getFileName(path: string): string {
+    if (!path) return '';
+    const parts = path.split('/');
+    return parts[parts.length - 1] ?? path;
   }
 
   getLineNumbers(): number[] {
     const lines = this.getCurrentCode().split('\n').length;
-    return Array.from({ length: lines }, (_, i) => i + 1);
+    return Array.from({ length: Math.max(lines, 1) }, (_, i) => i + 1);
   }
 }

@@ -1,7 +1,7 @@
 <div class="flex flex-col h-full bg-[#f2e5bc] select-none text-xs font-sans">
   
-  <!-- Explorer Header -->
-  <div class="px-3.5 py-2.5 border-b border-[#d5c4a1] flex items-center justify-between flex-shrink-0 bg-[#ebdbb2]/60">
+  <!-- Explorer Header & Action Bar -->
+  <div class="px-3.5 py-2 border-b border-[#d5c4a1] flex items-center justify-between flex-shrink-0 bg-[#ebdbb2]/60">
     <div class="flex items-center gap-2">
       <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-[#076678]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
         <path stroke-linecap="round" stroke-linejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
@@ -9,12 +9,36 @@
       <span class="text-[11px] font-bold text-[#282828] uppercase tracking-wider">Explorer</span>
     </div>
     
-    <!-- Action buttons -->
-    <div class="flex items-center gap-1">
+    <!-- Action buttons (New File, New Folder, Refresh, Collapse) -->
+    <div class="flex items-center gap-0.5 text-[#7c6f64]">
+      <button
+        (click)="startCreate('file')"
+        title="New File"
+        class="p-1 hover:text-[#282828] rounded hover:bg-[#d5c4a1]/50 transition-colors">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+        </svg>
+      </button>
+      <button
+        (click)="startCreate('folder')"
+        title="New Folder"
+        class="p-1 hover:text-[#282828] rounded hover:bg-[#d5c4a1]/50 transition-colors">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+        </svg>
+      </button>
+      <button
+        (click)="refreshTree()"
+        title="Refresh Explorer"
+        class="p-1 hover:text-[#282828] rounded hover:bg-[#d5c4a1]/50 transition-colors">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" [class.animate-spin]="fileService.isLoadingTree()">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+        </svg>
+      </button>
       <button
         (click)="collapseAll()"
         title="Collapse All Folders"
-        class="p-1 text-[#7c6f64] hover:text-[#282828] rounded hover:bg-[#d5c4a1]/50 transition-colors">
+        class="p-1 hover:text-[#282828] rounded hover:bg-[#d5c4a1]/50 transition-colors">
         <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
           <path stroke-linecap="round" stroke-linejoin="round" d="M4 8h16M4 16h16" />
         </svg>
@@ -22,27 +46,58 @@
     </div>
   </div>
 
+  <!-- Inline New Item Creation Box -->
+  @if (creatingType()) {
+    <div class="px-2 py-1.5 border-b border-[#d5c4a1] bg-[#fbf1c7] flex items-center gap-1.5 animate-fade-in">
+      <span class="text-[10px] font-mono text-[#076678] font-bold">
+        {{ creatingType() === 'folder' ? 'DIR:' : 'FILE:' }}
+      </span>
+      <input
+        type="text"
+        [value]="newPathInput()"
+        (input)="newPathInput.set($any($event.target).value)"
+        (keydown.enter)="confirmCreate()"
+        (keydown.escape)="cancelCreate()"
+        placeholder="path/name.ts"
+        autofocus
+        class="flex-1 bg-[#f2e5bc] border border-[#d5c4a1] rounded px-1.5 py-0.5 text-[11px] font-mono text-[#282828] outline-none focus:border-[#282828]"
+      />
+      <button (click)="confirmCreate()" class="text-[10px] text-[#79740e] font-bold px-1 hover:underline">OK</button>
+      <button (click)="cancelCreate()" class="text-[10px] text-[#9d0006] font-bold px-1 hover:underline">✕</button>
+    </div>
+  }
+
   <!-- Tree Nodes Viewport -->
   <div class="flex-1 overflow-y-auto py-2 px-1">
-    <ng-container *ngTemplateOutlet="treeNodes; context: { nodes: tree(), depth: 0 }"></ng-container>
+    @if (fileService.isLoadingTree() && fileService.tree().length === 0) {
+      <div class="p-4 text-center text-[11px] text-[#7c6f64] font-mono animate-pulse">
+        Loading directory tree…
+      </div>
+    } @else if (fileService.tree().length === 0) {
+      <div class="p-4 text-center text-[11px] text-[#7c6f64] font-mono">
+        Directory empty
+      </div>
+    } @else {
+      <ng-container *ngTemplateOutlet="treeNodes; context: { nodes: fileService.tree(), depth: 0 }"></ng-container>
+    }
   </div>
 
   <!-- Recursive Tree Template -->
   <ng-template #treeNodes let-nodes="nodes" let-depth="depth">
-    @for (node of nodes; track node.name) {
+    @for (node of nodes; track node.path) {
       <div
         class="group flex items-center gap-1.5 px-2 py-1 cursor-pointer rounded transition-all duration-150 relative my-0.5"
         [style.padding-left.px]="8 + depth * 14"
-        [class.bg-[#ebdbb2]]="selectedFile() === node.name"
-        [class.text-[#282828]]="selectedFile() === node.name"
-        [class.font-semibold]="selectedFile() === node.name"
-        [class.text-[#7c6f64]]="selectedFile() !== node.name"
-        [class.hover:bg-[#ebdbb2]/50]="selectedFile() !== node.name"
-        [class.hover:text-[#282828]]="selectedFile() !== node.name"
+        [class.bg-[#ebdbb2]]="fileService.activeTab() === node.path"
+        [class.text-[#282828]]="fileService.activeTab() === node.path"
+        [class.font-semibold]="fileService.activeTab() === node.path"
+        [class.text-[#7c6f64]]="fileService.activeTab() !== node.path"
+        [class.hover:bg-[#ebdbb2]/50]="fileService.activeTab() !== node.path"
+        [class.hover:text-[#282828]]="fileService.activeTab() !== node.path"
         (click)="selectFile(node)">
 
         <!-- Left Active Indicator Stripe -->
-        @if (selectedFile() === node.name) {
+        @if (fileService.activeTab() === node.path) {
           <div class="absolute left-0 top-1 bottom-1 w-0.5 bg-[#076678] rounded-r"></div>
         }
 
