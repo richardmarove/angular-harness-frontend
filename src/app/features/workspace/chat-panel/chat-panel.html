@@ -131,14 +131,18 @@
                 <button
                   (click)="retry()"
                   [disabled]="retryCountdown() > 0"
+                  [title]="error.hasMutatingCalls ? 'This may re-run file writes or shell commands from before the error' : ''"
                   class="text-[10px] font-sans font-semibold px-2 py-1 rounded bg-[#ebdbb2] hover:bg-[#d5c4a1] disabled:opacity-40 disabled:cursor-not-allowed border border-[#d5c4a1] transition-colors">
-                  {{ retryCountdown() > 0 ? 'Retry in ' + retryCountdown() + 's' : 'Retry now' }}
+                  {{ retryCountdown() > 0
+                      ? 'Retry in ' + retryCountdown() + 's'
+                      : (error.hasMutatingCalls ? 'Retry (may re-run writes/commands)' : 'Retry now') }}
                 </button>
               } @else {
                 <button
                   (click)="retry()"
+                  [title]="error.hasMutatingCalls ? 'This may re-run file writes or shell commands from before the error' : ''"
                   class="text-[10px] font-sans font-semibold px-2 py-1 rounded bg-[#ebdbb2] hover:bg-[#d5c4a1] border border-[#d5c4a1] transition-colors">
-                  Retry
+                  {{ error.hasMutatingCalls ? 'Retry (may re-run writes/commands)' : 'Retry' }}
                 </button>
               }
               <button

@@ -16,7 +16,10 @@ export interface AgentErrorInfo {
   code?: number | string;
   raw?: string;
   retryAfterSec?: number;
+  hasMutatingCalls: boolean;
 }
+
+const MUTATING_TOOLS = new Set(['write_file', 'run_command']);
 
 @Component({
   selector: 'app-chat-panel',
@@ -170,7 +173,24 @@ export class ChatPanelComponent implements AfterViewInit, AfterViewChecked, OnDe
       code: err.code,
       raw: err.raw,
       retryAfterSec: err.retryAfterSec,
+      hasMutatingCalls: this.hadMutatingCallsSinceLastUserMsg(),
     };
+  }
+
+  private hadMutatingCallsSinceLastUserMsg(): boolean {
+    const msgs = this.messages();
+    let lastUserIdx = -1;
+    for (let i = msgs.length - 1; i >= 0; i--) {
+      if (msgs[i].role === 'user' && msgs[i].type === 'text') {
+        lastUserIdx = i;
+        break;
+      }
+    }
+    if (lastUserIdx === -1) return false;
+
+    return msgs
+      .slice(lastUserIdx + 1)
+      .some((m) => m.type === 'tool_call' && MUTATING_TOOLS.has(m.toolName ?? ''));
   }
 
   private startCountdown(seconds: number): void {
