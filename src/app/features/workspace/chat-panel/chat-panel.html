@@ -127,6 +127,7 @@
   <div class="px-4 py-3 border-t border-[#d5c4a1] bg-[#ebdbb2]/40 shrink-0">
     <div class="flex items-end gap-2 bg-surface rounded-xl border border-[#d5c4a1] focus-within:border-[#282828] focus-within:ring-1 focus-within:ring-[#282828] transition-all">
       <textarea
+        #chatInput
         id="chat-input"
         [value]="userInput()"
         (input)="onInputChange($any($event.target).value)"
@@ -134,7 +135,7 @@
         [disabled]="isStreaming()"
         placeholder="Ask angular-harness to edit files or run commands…"
         rows="1"
-        class="flex-1 bg-transparent resize-none px-3.5 py-2.5 text-xs text-[#282828] placeholder-text-muted/60 outline-none leading-relaxed max-h-36 font-sans">
+        class="flex-1 bg-transparent resize-none px-3.5 py-2.5 text-xs text-[#282828] placeholder-text-muted/60 outline-none leading-relaxed max-h-36 overflow-y-auto font-sans">
       </textarea>
       <button
         id="send-button"

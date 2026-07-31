@@ -1,6 +1,6 @@
 import {
   Component, inject, signal, ElementRef, ViewChild,
-  AfterViewChecked, OnDestroy
+  AfterViewInit, AfterViewChecked, OnDestroy
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -20,8 +20,9 @@ import { ToolEventComponent } from './tool-event/tool-event';
     'class': 'flex-1 flex flex-col min-h-0 overflow-hidden',
   },
 })
-export class ChatPanelComponent implements AfterViewChecked, OnDestroy {
+export class ChatPanelComponent implements AfterViewInit, AfterViewChecked, OnDestroy {
   @ViewChild('messageList') private messageList!: ElementRef<HTMLDivElement>;
+  @ViewChild('chatInput') private chatInputRef!: ElementRef<HTMLTextAreaElement>;
 
   private agentService = inject(AgentService);
   private chatStore = inject(ChatStoreService);
@@ -41,6 +42,10 @@ export class ChatPanelComponent implements AfterViewChecked, OnDestroy {
 
   private shouldScrollBottom = false;
 
+  ngAfterViewInit(): void {
+    this.autoResize();
+  }
+
   ngAfterViewChecked(): void {
     if (this.shouldScrollBottom) {
       this.scrollToBottom();
@@ -54,6 +59,7 @@ export class ChatPanelComponent implements AfterViewChecked, OnDestroy {
 
   onInputChange(value: string): void {
     this.userInput.set(value);
+    this.autoResize();
   }
 
   onKeyDown(event: KeyboardEvent): void {
@@ -74,6 +80,7 @@ export class ChatPanelComponent implements AfterViewChecked, OnDestroy {
 
     this.errorMsg.set('');
     this.userInput.set('');
+    this.autoResize();
 
     // Add user message
     this.chatStore.addMessage({ role: 'user', type: 'text', content: text, streaming: false });
@@ -146,6 +153,13 @@ export class ChatPanelComponent implements AfterViewChecked, OnDestroy {
 
   trackById(_: number, msg: DisplayMessage): string {
     return msg.id;
+  }
+
+  private autoResize(): void {
+    const el = this.chatInputRef?.nativeElement;
+    if (!el) return;
+    el.style.height = 'auto';
+    el.style.height = `${el.scrollHeight}px`;
   }
 
   private scrollToBottom(): void {
