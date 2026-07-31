@@ -1,6 +1,6 @@
 import {
   Component, inject, signal, ElementRef, ViewChild,
-  AfterViewInit, AfterViewChecked, OnDestroy
+  AfterViewInit, AfterViewChecked, OnDestroy, computed
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -9,6 +9,11 @@ import { AgentService, AgentError } from '../../../core/services/agent';
 import { ChatStoreService, DisplayMessage } from '../../../core/services/chat-store';
 import { SessionService } from '../../../core/services/session';
 import { ToolEventComponent } from './tool-event/tool-event';
+import { ToolGroupComponent } from './tool-group/tool-group';
+
+type RenderItem =
+  | { kind: 'message'; id: string; msg: DisplayMessage }
+  | { kind: 'tool_group'; id: string; calls: DisplayMessage[] };
 
 export interface AgentErrorInfo {
   title: string;
@@ -24,7 +29,7 @@ const MUTATING_TOOLS = new Set(['write_file', 'run_command']);
 @Component({
   selector: 'app-chat-panel',
   standalone: true,
-  imports: [CommonModule, FormsModule, ToolEventComponent],
+  imports: [CommonModule, FormsModule, ToolEventComponent, ToolGroupComponent],
   templateUrl: './chat-panel.html',
   styleUrl: './chat-panel.css',
   host: {
@@ -55,6 +60,29 @@ export class ChatPanelComponent implements AfterViewInit, AfterViewChecked, OnDe
   ]);
 
   private shouldScrollBottom = false;
+
+  readonly renderItems = computed<RenderItem[]>(() => {
+    const items: RenderItem[] = [];
+    let currentGroup: DisplayMessage[] = [];
+
+    const flushGroup = () => {
+      if (currentGroup.length > 0) {
+        items.push({ kind: 'tool_group', id: currentGroup[0].id, calls: currentGroup });
+        currentGroup = [];
+      }
+    };
+
+    for (const msg of this.messages()) {
+      if (msg.type === 'tool_call') {
+        currentGroup.push(msg);
+      } else {
+        flushGroup();
+        items.push({ kind: 'message', id: msg.id, msg });
+      }
+    }
+    flushGroup();
+    return items;
+  });
 
   ngAfterViewInit(): void {
     this.autoResize();
@@ -224,8 +252,8 @@ export class ChatPanelComponent implements AfterViewInit, AfterViewChecked, OnDe
     return msg.type === 'tool_call';
   }
 
-  trackById(_: number, msg: DisplayMessage): string {
-    return msg.id;
+  trackById(_: number, item: RenderItem): string {
+    return item.id;
   }
 
   private autoResize(): void {

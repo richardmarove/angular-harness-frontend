@@ -1,0 +1,57 @@
+<div class="my-1.5 rounded-lg border border-[#d5c4a1] bg-surface overflow-hidden text-xs font-mono">
+
+  <button
+    (click)="toggle()"
+    class="w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-[#ebdbb2]/50 transition-colors">
+
+    @if (isStreaming()) {
+      <svg class="w-3.5 h-3.5 animate-spin shrink-0 text-[#076678]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+      </svg>
+    } @else {
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 shrink-0 text-text-muted transition-transform duration-200"
+        [class.rotate-90]="expanded()"
+        fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+      </svg>
+    }
+
+    <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5"
+      [class.badge-aqua]="!hasError()"
+      [class.badge-red]="hasError()">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M11.42 15.17L17.25 21A2.652 2.652 0 0021 17.25l-5.83-5.83M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17L4.5 22.12M11.42 15.17L2.25 6" />
+      </svg>
+      <span>Tool use</span>
+    </span>
+
+    <span class="text-text-muted text-[11px] font-mono opacity-80">{{ calls.length }} call{{ calls.length === 1 ? '' : 's' }}</span>
+
+    <span class="ml-auto shrink-0 text-[10px] font-semibold">
+      @if (isStreaming()) {
+        <span class="text-[#076678] animate-pulse">{{ statusLabel }}</span>
+      } @else if (hasError()) {
+        <span class="text-[#9d0006] font-mono">✗ {{ statusLabel }}</span>
+      } @else {
+        <span class="text-[#79740e] font-mono">✓ {{ statusLabel }}</span>
+      }
+    </span>
+  </button>
+
+  @if (expanded()) {
+    <div class="border-t border-[#d5c4a1] bg-surface-2/60 pl-4 pr-2 py-2">
+      <div class="flex flex-col gap-1 pl-3 border-l border-[#d5c4a1]">
+        @for (call of calls; track trackByCallId($index, call)) {
+          <app-tool-event
+            [toolName]="call.toolName || ''"
+            [toolArgs]="call.toolArgs || {}"
+            [toolResult]="call.toolResult || ''"
+            [toolError]="call.toolError || ''"
+            [isStreaming]="call.streaming">
+          </app-tool-event>
+        }
+      </div>
+    </div>
+  }
+</div>
