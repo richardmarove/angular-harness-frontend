@@ -106,19 +106,36 @@
     <!-- Error Card -->
     @if (errorMsg(); as error) {
       <div class="rounded-lg border overflow-hidden text-xs"
-        [class.border-[#d79921]]="error.code === 429 || error.code === 'RESOURCE_EXHAUSTED'"
-        [class.badge-red]="!(error.code === 429 || error.code === 'RESOURCE_EXHAUSTED')">
+        [class.border-[#d79921]]="error.code === 429 || error.code === 'RESOURCE_EXHAUSTED' || error.isUnavailable"
+        [class.badge-red]="!(error.code === 429 || error.code === 'RESOURCE_EXHAUSTED' || error.isUnavailable)"
+        [class.bg-[#ebdbb2]/40]="error.isUnavailable">
 
         <div class="flex items-start gap-2.5 px-3 py-2.5">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 shrink-0 mt-0.5 text-[#9d0006]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
-          </svg>
+          @if (error.isUnavailable) {
+            <svg class="w-4 h-4 shrink-0 mt-0.5 text-[#076678] animate-pulse" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12a7.5 7.5 0 0015 0m0 0l-3-3m3 3l3-3M19.5 12a7.5 7.5 0 00-15 0m0 0l3 3m-3-3l-3 3" />
+            </svg>
+          } @else {
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 shrink-0 mt-0.5 text-[#9d0006]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+            </svg>
+          }
           <div class="flex-1 min-w-0">
             <div class="font-bold text-[#282828]">{{ error.title }}</div>
             <div class="text-text-muted mt-0.5 leading-relaxed">{{ error.message }}</div>
 
             <div class="flex items-center gap-2 mt-2">
-              @if (error.retryAfterSec) {
+              @if (error.isUnavailable) {
+                @if (retryCountdown() > 0) {
+                  <span class="text-[10px] font-sans text-text-muted">
+                    Retrying automatically in {{ retryCountdown() }}s…
+                  </span>
+                } @else {
+                  <button (click)="retry()" class="text-[10px] font-sans font-semibold px-2 py-1 rounded bg-[#ebdbb2] hover:bg-[#d5c4a1] border border-[#d5c4a1] transition-colors">
+                    Retry now
+                  </button>
+                }
+              } @else if (error.retryAfterSec) {
                 <button
                   (click)="retry()"
                   [disabled]="retryCountdown() > 0"

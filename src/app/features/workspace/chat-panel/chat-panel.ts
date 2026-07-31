@@ -24,6 +24,7 @@ export interface AgentErrorInfo {
   retryAfterSec?: number;
   hasMutatingCalls: boolean;
   turnId?: string;
+  isUnavailable: boolean;
 }
 
 const MUTATING_TOOLS = new Set(['write_file', 'run_command']);
@@ -53,6 +54,9 @@ export class ChatPanelComponent implements AfterViewInit, AfterViewChecked, OnDe
   readonly errorMsg = signal<AgentErrorInfo | null>(null);
   readonly retryCountdown = signal(0);
   private countdownHandle?: ReturnType<typeof setInterval>;
+  private static readonly UNAVAILABLE_BACKOFF = [3, 6, 12]; // seconds, escalating
+  private unavailableAttempt = 0;
+  private autoRetryHandle?: ReturnType<typeof setTimeout>;
   private lastHistory: { role: 'user' | 'model'; content: string }[] = [];
   private currentTurnId: string | null = null;
 
@@ -126,6 +130,7 @@ export class ChatPanelComponent implements AfterViewInit, AfterViewChecked, OnDe
 
     this.errorMsg.set(null);
     this.clearCountdown();
+    this.unavailableAttempt = 0;
     this.userInput.set('');
 
     this.chatStore.addMessage({ role: 'user', type: 'text', content: text, streaming: false });
@@ -149,6 +154,7 @@ export class ChatPanelComponent implements AfterViewInit, AfterViewChecked, OnDe
   dismissError(): void {
     this.errorMsg.set(null);
     this.clearCountdown();
+    this.unavailableAttempt = 0;
   }
 
   private runAgent(history: { role: 'user' | 'model'; content: string }[], resumeTurnId?: string): void {
@@ -189,12 +195,18 @@ export class ChatPanelComponent implements AfterViewInit, AfterViewChecked, OnDe
           if (activeToolMsgId) this.chatStore.finalizeMessage(activeToolMsgId);
           const turnId = err.turnId ?? this.currentTurnId ?? undefined;
           this.errorMsg.set(this.toErrorInfo(err, turnId));
-          if (err.retryAfterSec) this.startCountdown(err.retryAfterSec);
+
+          if (err.retryAfterSec) {
+            this.startCountdown(err.retryAfterSec);
+          } else if (err.status === 'UNAVAILABLE') {
+            this.startAutoRetry();
+          }
           console.error('Agent error:', err);
         },
         complete: () => {
           if (modelMsgId) this.chatStore.finalizeMessage(modelMsgId);
           this.currentTurnId = null;
+          this.unavailableAttempt = 0;
           this.shouldScrollBottom = true;
         },
       });
@@ -214,6 +226,7 @@ export class ChatPanelComponent implements AfterViewInit, AfterViewChecked, OnDe
       retryAfterSec: err.retryAfterSec,
       hasMutatingCalls: this.hadMutatingCallsSinceLastUserMsg(),
       turnId,
+      isUnavailable: err.status === 'UNAVAILABLE',
     };
   }
 
@@ -233,6 +246,24 @@ export class ChatPanelComponent implements AfterViewInit, AfterViewChecked, OnDe
       .some((m) => m.type === 'tool_call' && MUTATING_TOOLS.has(m.toolName ?? ''));
   }
 
+  private startAutoRetry(): void {
+    if (this.unavailableAttempt >= ChatPanelComponent.UNAVAILABLE_BACKOFF.length) return;
+    const delay = ChatPanelComponent.UNAVAILABLE_BACKOFF[this.unavailableAttempt];
+    this.unavailableAttempt++;
+    this.retryCountdown.set(delay);
+
+    this.countdownHandle = setInterval(() => {
+      const next = this.retryCountdown() - 1;
+      if (next <= 0) {
+        this.clearCountdown();
+        this.retryCountdown.set(0);
+        this.retry(); // single source of truth — no separate setTimeout
+      } else {
+        this.retryCountdown.set(next);
+      }
+    }, 1000);
+  }
+
   private startCountdown(seconds: number): void {
     this.retryCountdown.set(seconds);
     this.countdownHandle = setInterval(() => {
@@ -247,8 +278,8 @@ export class ChatPanelComponent implements AfterViewInit, AfterViewChecked, OnDe
   }
 
   private clearCountdown(): void {
-    if (this.countdownHandle) clearInterval(this.countdownHandle);
-    this.countdownHandle = undefined;
+    if (this.autoRetryHandle) clearTimeout(this.autoRetryHandle);
+    this.autoRetryHandle = undefined;
   }
 
   clearChat(): void {
