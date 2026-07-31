@@ -7,22 +7,25 @@ export interface ChatMessage {
 }
 
 export type AgentEvent =
+  | { type: 'turn'; turnId: string }
   | { type: 'tool_call'; name: string; args: Record<string, unknown> }
   | { type: 'tool_result'; name: string; result: string; error?: string }
   | { type: 'chunk'; text: string }
   | { type: 'done' }
-  | { type: 'error'; message: string; code?: number | string; status?: string; retryAfterSec?: number; raw?: string };
+  | { type: 'error'; message: string; code?: number | string; status?: string; retryAfterSec?: number; raw?: string; turnId?: string };
 
 export interface AgentError extends Error {
   code?: number | string;
   status?: string;
   retryAfterSec?: number;
   raw?: string;
+  turnId?: string;
 }
 
 export interface RunRequest {
   messages: ChatMessage[];
   workingDir: string;
+  turnId?: string;
 }
 
 @Injectable({
@@ -86,6 +89,7 @@ export class AgentService {
                       status: event.status,
                       retryAfterSec: event.retryAfterSec,
                       raw: event.raw,
+                      turnId: event.turnId,
                     });
                     observer.error(err);
                     return;

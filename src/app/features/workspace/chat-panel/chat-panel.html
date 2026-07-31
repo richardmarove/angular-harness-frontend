@@ -74,7 +74,7 @@
             {{ item.msg.role === 'user' ? 'U' : 'AI' }}
           </div>
 
-          <div class="max-w-[85%] rounded-xl px-4 py-3 text-xs leading-relaxed whitespace-pre-wrap wrap-break-word border font-sans"
+          <div class="max-w-[85%] rounded-xl px-4 py-3 text-xs leading-relaxed wrap-break-word border font-sans markdown-body"
             [class.bg-[#ebdbb2]]="item.msg.role === 'user'"
             [class.text-[#282828]]="item.msg.role === 'user'"
             [class.border-[#d5c4a1]]="item.msg.role === 'user'"
@@ -83,8 +83,11 @@
             [class.text-[#282828]]="item.msg.role === 'model'"
             [class.border-[#d5c4a1]]="item.msg.role === 'model'"
             [class.rounded-tl-xs]="item.msg.role === 'model'">
-            {{ item.msg.content }}
-
+            @if (item.msg.role === 'model') {
+              <div [innerHTML]="item.msg.content | markdown"></div>
+            } @else {
+              <span class="whitespace-pre-wrap">{{ item.msg.content }}</span>
+            }
             @if (item.msg.streaming && !item.msg.content) {
               <span class="inline-flex gap-1 py-1">
                 <span class="w-1.5 h-1.5 rounded-full bg-[#076678] animate-bounce" style="animation-delay:0ms"></span>
@@ -92,7 +95,6 @@
                 <span class="w-1.5 h-1.5 rounded-full bg-[#076678] animate-bounce" style="animation-delay:300ms"></span>
               </span>
             }
-
             @if (item.msg.streaming && item.msg.content) {
               <span class="inline-block w-1.5 h-3.5 ml-1 bg-[#076678] animate-pulse rounded-sm align-middle"></span>
             }

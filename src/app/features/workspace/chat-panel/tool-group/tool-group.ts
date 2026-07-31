@@ -1,4 +1,4 @@
-import { Component, Input, signal, computed } from '@angular/core';
+import { Component, input, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DisplayMessage } from '../../../../core/services/chat-store';
 import { ToolEventComponent } from '../tool-event/tool-event';
@@ -11,7 +11,7 @@ import { ToolEventComponent } from '../tool-event/tool-event';
   styleUrl: './tool-group.css',
 })
 export class ToolGroupComponent {
-  @Input() calls: DisplayMessage[] = [];
+  readonly calls = input<DisplayMessage[]>([]);
 
   readonly expanded = signal(false);
 
@@ -19,8 +19,8 @@ export class ToolGroupComponent {
     this.expanded.update((v) => !v);
   }
 
-  readonly isStreaming = computed(() => this.calls.some((c) => c.streaming));
-  readonly hasError = computed(() => this.calls.some((c) => !!c.toolError));
+  readonly isStreaming = computed(() => this.calls().some((c) => c.streaming));
+  readonly hasError = computed(() => this.calls().some((c) => !!c.toolError));
 
   get statusLabel(): string {
     if (this.isStreaming()) return 'Running…';
