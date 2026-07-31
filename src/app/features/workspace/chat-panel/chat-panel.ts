@@ -22,6 +22,7 @@ export interface AgentErrorInfo {
   raw?: string;
   retryAfterSec?: number;
   hasMutatingCalls: boolean;
+  turnId?: string;
 }
 
 const MUTATING_TOOLS = new Set(['write_file', 'run_command']);
@@ -52,6 +53,7 @@ export class ChatPanelComponent implements AfterViewInit, AfterViewChecked, OnDe
   readonly retryCountdown = signal(0);
   private countdownHandle?: ReturnType<typeof setInterval>;
   private lastHistory: { role: 'user' | 'model'; content: string }[] = [];
+  private currentTurnId: string | null = null;
 
   readonly samplePrompts = signal([
     'Analyze workspace structure & components',
@@ -138,8 +140,9 @@ export class ChatPanelComponent implements AfterViewInit, AfterViewChecked, OnDe
 
   retry(): void {
     if (this.retryCountdown() > 0 || this.isStreaming()) return;
+    const resumeTurnId = this.errorMsg()?.turnId;
     this.errorMsg.set(null);
-    this.runAgent(this.lastHistory);
+    this.runAgent(this.lastHistory, resumeTurnId);
   }
 
   dismissError(): void {
@@ -147,17 +150,19 @@ export class ChatPanelComponent implements AfterViewInit, AfterViewChecked, OnDe
     this.clearCountdown();
   }
 
-  private runAgent(history: { role: 'user' | 'model'; content: string }[]): void {
+  private runAgent(history: { role: 'user' | 'model'; content: string }[], resumeTurnId?: string): void {
     let modelMsgId: string | null = null;
     let activeToolMsgId: string | null = null;
 
     this.streamSub = this.agentService
-      .runAgent({ messages: history, workingDir: this.sessionService.workingDir() })
+      .runAgent({ messages: history, workingDir: this.sessionService.workingDir(), turnId: resumeTurnId })
       .subscribe({
         next: (event) => {
           this.shouldScrollBottom = true;
 
-          if (event.type === 'tool_call') {
+          if (event.type === 'turn') {
+            this.currentTurnId = event.turnId;
+          } else if (event.type === 'tool_call') {
             activeToolMsgId = this.chatStore.addMessage({
               role: 'tool', type: 'tool_call', content: '',
               toolName: event.name, toolArgs: event.args, streaming: true,
@@ -181,18 +186,20 @@ export class ChatPanelComponent implements AfterViewInit, AfterViewChecked, OnDe
         error: (err: AgentError) => {
           if (modelMsgId) this.chatStore.finalizeMessage(modelMsgId);
           if (activeToolMsgId) this.chatStore.finalizeMessage(activeToolMsgId);
-          this.errorMsg.set(this.toErrorInfo(err));
+          const turnId = err.turnId ?? this.currentTurnId ?? undefined;
+          this.errorMsg.set(this.toErrorInfo(err, turnId));
           if (err.retryAfterSec) this.startCountdown(err.retryAfterSec);
           console.error('Agent error:', err);
         },
         complete: () => {
           if (modelMsgId) this.chatStore.finalizeMessage(modelMsgId);
+          this.currentTurnId = null;
           this.shouldScrollBottom = true;
         },
       });
   }
 
-  private toErrorInfo(err: AgentError): AgentErrorInfo {
+  private toErrorInfo(err: AgentError, turnId?: string): AgentErrorInfo {
     let title = 'Something went wrong';
     if (err.status === 'RESOURCE_EXHAUSTED') title = 'Rate limit reached';
     else if (err.status === 'UNAVAILABLE') title = 'Model unavailable';
@@ -205,6 +212,7 @@ export class ChatPanelComponent implements AfterViewInit, AfterViewChecked, OnDe
       raw: err.raw,
       retryAfterSec: err.retryAfterSec,
       hasMutatingCalls: this.hadMutatingCallsSinceLastUserMsg(),
+      turnId,
     };
   }
 
@@ -245,6 +253,7 @@ export class ChatPanelComponent implements AfterViewInit, AfterViewChecked, OnDe
   clearChat(): void {
     this.streamSub?.unsubscribe();
     this.clearCountdown();
+    this.currentTurnId = null;
     this.chatStore.clear();
   }
 
