@@ -11,7 +11,14 @@ export type AgentEvent =
   | { type: 'tool_result'; name: string; result: string; error?: string }
   | { type: 'chunk'; text: string }
   | { type: 'done' }
-  | { type: 'error'; message: string };
+  | { type: 'error'; message: string; code?: number | string; status?: string; retryAfterSec?: number; raw?: string };
+
+export interface AgentError extends Error {
+  code?: number | string;
+  status?: string;
+  retryAfterSec?: number;
+  raw?: string;
+}
 
 export interface RunRequest {
   messages: ChatMessage[];
@@ -74,7 +81,13 @@ export class AgentService {
                   }
 
                   if (event.type === 'error') {
-                    observer.error(new Error(event.message));
+                    const err: AgentError = Object.assign(new Error(event.message), {
+                      code: event.code,
+                      status: event.status,
+                      retryAfterSec: event.retryAfterSec,
+                      raw: event.raw,
+                    });
+                    observer.error(err);
                     return;
                   }
 

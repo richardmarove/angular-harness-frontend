@@ -5,10 +5,18 @@ import {
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
-import { AgentService } from '../../../core/services/agent';
+import { AgentService, AgentError } from '../../../core/services/agent';
 import { ChatStoreService, DisplayMessage } from '../../../core/services/chat-store';
 import { SessionService } from '../../../core/services/session';
 import { ToolEventComponent } from './tool-event/tool-event';
+
+export interface AgentErrorInfo {
+  title: string;
+  message: string;
+  code?: number | string;
+  raw?: string;
+  retryAfterSec?: number;
+}
 
 @Component({
   selector: 'app-chat-panel',
@@ -32,7 +40,10 @@ export class ChatPanelComponent implements AfterViewInit, AfterViewChecked, OnDe
   readonly messages = this.chatStore.messages;
   readonly isStreaming = this.chatStore.isStreaming;
   readonly userInput = signal('');
-  readonly errorMsg = signal('');
+  readonly errorMsg = signal<AgentErrorInfo | null>(null);
+  readonly retryCountdown = signal(0);
+  private countdownHandle?: ReturnType<typeof setInterval>;
+  private lastHistory: { role: 'user' | 'model'; content: string }[] = [];
 
   readonly samplePrompts = signal([
     'Analyze workspace structure & components',
@@ -55,6 +66,7 @@ export class ChatPanelComponent implements AfterViewInit, AfterViewChecked, OnDe
 
   ngOnDestroy(): void {
     this.streamSub?.unsubscribe();
+    this.clearCountdown();
   }
 
   onInputChange(value: string): void {
@@ -78,25 +90,37 @@ export class ChatPanelComponent implements AfterViewInit, AfterViewChecked, OnDe
     const text = this.userInput().trim();
     if (!text || this.isStreaming()) return;
 
-    this.errorMsg.set('');
+    this.errorMsg.set(null);
+    this.clearCountdown();
     this.userInput.set('');
     this.autoResize();
 
-    // Add user message
     this.chatStore.addMessage({ role: 'user', type: 'text', content: text, streaming: false });
     this.shouldScrollBottom = true;
 
-    // Build history (text messages only — tool events are internal)
     const history = this.messages()
       .filter((m) => m.type === 'text')
       .map((m) => ({ role: m.role as 'user' | 'model', content: m.content }));
 
-    // Add empty streaming AI text message
+    this.lastHistory = history;
+    this.runAgent(history);
+  }
+
+  retry(): void {
+    if (this.retryCountdown() > 0 || this.isStreaming()) return;
+    this.errorMsg.set(null);
+    this.runAgent(this.lastHistory);
+  }
+
+  dismissError(): void {
+    this.errorMsg.set(null);
+    this.clearCountdown();
+  }
+
+  private runAgent(history: { role: 'user' | 'model'; content: string }[]): void {
     const modelMsgId = this.chatStore.addMessage({
       role: 'model', type: 'text', content: '', streaming: true,
     });
-
-    // Track active tool call message ID for result updates
     let activeToolMsgId: string | null = null;
 
     this.streamSub = this.agentService
@@ -104,24 +128,15 @@ export class ChatPanelComponent implements AfterViewInit, AfterViewChecked, OnDe
       .subscribe({
         next: (event) => {
           this.shouldScrollBottom = true;
-
           if (event.type === 'tool_call') {
-            // Insert a pending tool event row
             activeToolMsgId = this.chatStore.addMessage({
-              role: 'tool',
-              type: 'tool_call',
-              content: '',
-              toolName: event.name,
-              toolArgs: event.args,
-              streaming: true,
+              role: 'tool', type: 'tool_call', content: '',
+              toolName: event.name, toolArgs: event.args, streaming: true,
             });
           } else if (event.type === 'tool_result') {
-            // Populate the pending tool row with the result
             if (activeToolMsgId) {
               this.chatStore.updateMessage(activeToolMsgId, {
-                toolResult: event.result,
-                toolError: event.error,
-                streaming: false,
+                toolResult: event.result, toolError: event.error, streaming: false,
               });
               activeToolMsgId = null;
             }
@@ -129,10 +144,11 @@ export class ChatPanelComponent implements AfterViewInit, AfterViewChecked, OnDe
             this.chatStore.appendToMessage(modelMsgId, event.text);
           }
         },
-        error: (err) => {
+        error: (err: AgentError) => {
           this.chatStore.finalizeMessage(modelMsgId);
           if (activeToolMsgId) this.chatStore.finalizeMessage(activeToolMsgId);
-          this.errorMsg.set(err?.message ?? 'Connection error. Please try again.');
+          this.errorMsg.set(this.toErrorInfo(err));
+          if (err.retryAfterSec) this.startCountdown(err.retryAfterSec);
           console.error('Agent error:', err);
         },
         complete: () => {
@@ -142,8 +158,42 @@ export class ChatPanelComponent implements AfterViewInit, AfterViewChecked, OnDe
       });
   }
 
+  private toErrorInfo(err: AgentError): AgentErrorInfo {
+    let title = 'Something went wrong';
+    if (err.status === 'RESOURCE_EXHAUSTED') title = 'Rate limit reached';
+    else if (err.status === 'UNAVAILABLE') title = 'Model unavailable';
+    else if (err.status === 'PERMISSION_DENIED') title = 'Access denied';
+    else if (!err.status) title = 'Connection error';
+    return {
+      title,
+      message: err.message || 'Please try again.',
+      code: err.code,
+      raw: err.raw,
+      retryAfterSec: err.retryAfterSec,
+    };
+  }
+
+  private startCountdown(seconds: number): void {
+    this.retryCountdown.set(seconds);
+    this.countdownHandle = setInterval(() => {
+      const next = this.retryCountdown() - 1;
+      if (next <= 0) {
+        this.retryCountdown.set(0);
+        this.clearCountdown();
+      } else {
+        this.retryCountdown.set(next);
+      }
+    }, 1000);
+  }
+
+  private clearCountdown(): void {
+    if (this.countdownHandle) clearInterval(this.countdownHandle);
+    this.countdownHandle = undefined;
+  }
+
   clearChat(): void {
     this.streamSub?.unsubscribe();
+    this.clearCountdown();
     this.chatStore.clear();
   }
 

@@ -112,13 +112,49 @@
       }
     }
 
-    <!-- Error Banner -->
-    @if (errorMsg()) {
-      <div class="flex items-center gap-2 badge-red px-3 py-2.5 rounded-lg text-xs">
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 shrink-0 text-[#9d0006]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
-        </svg>
-        <span class="leading-normal">{{ errorMsg() }}</span>
+    <!-- Error Card -->
+    @if (errorMsg(); as error) {
+      <div class="rounded-lg border overflow-hidden text-xs"
+        [class.border-[#d79921]]="error.code === 429 || error.code === 'RESOURCE_EXHAUSTED'"
+        [class.badge-red]="!(error.code === 429 || error.code === 'RESOURCE_EXHAUSTED')">
+
+        <div class="flex items-start gap-2.5 px-3 py-2.5">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 shrink-0 mt-0.5 text-[#9d0006]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+          </svg>
+          <div class="flex-1 min-w-0">
+            <div class="font-bold text-[#282828]">{{ error.title }}</div>
+            <div class="text-text-muted mt-0.5 leading-relaxed">{{ error.message }}</div>
+
+            <div class="flex items-center gap-2 mt-2">
+              @if (error.retryAfterSec) {
+                <button
+                  (click)="retry()"
+                  [disabled]="retryCountdown() > 0"
+                  class="text-[10px] font-sans font-semibold px-2 py-1 rounded bg-[#ebdbb2] hover:bg-[#d5c4a1] disabled:opacity-40 disabled:cursor-not-allowed border border-[#d5c4a1] transition-colors">
+                  {{ retryCountdown() > 0 ? 'Retry in ' + retryCountdown() + 's' : 'Retry now' }}
+                </button>
+              } @else {
+                <button
+                  (click)="retry()"
+                  class="text-[10px] font-sans font-semibold px-2 py-1 rounded bg-[#ebdbb2] hover:bg-[#d5c4a1] border border-[#d5c4a1] transition-colors">
+                  Retry
+                </button>
+              }
+              <button
+                (click)="dismissError()"
+                class="text-[10px] font-sans px-2 py-1 rounded hover:bg-[#ebdbb2] transition-colors text-text-muted">
+                Dismiss
+              </button>
+              @if (error.raw) {
+                <details class="ml-auto">
+                  <summary class="text-[10px] font-sans cursor-pointer text-text-muted hover:text-[#282828]">Details</summary>
+                  <pre class="mt-1.5 text-[10px] whitespace-pre-wrap break-all bg-surface p-2 rounded border border-[#d5c4a1] max-h-32 overflow-y-auto font-mono">{{ error.raw }}</pre>
+                </details>
+              }
+            </div>
+          </div>
+        </div>
       </div>
     }
   </div>
