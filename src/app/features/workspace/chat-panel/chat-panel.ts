@@ -10,6 +10,7 @@ import { ChatStoreService, DisplayMessage } from '../../../core/services/chat-st
 import { SessionService } from '../../../core/services/session';
 import { ToolEventComponent } from './tool-event/tool-event';
 import { ToolGroupComponent } from './tool-group/tool-group';
+import { MarkdownPipe } from '../../../shared/pipes/markdown.pipe';
 
 type RenderItem =
   | { kind: 'message'; id: string; msg: DisplayMessage }
@@ -30,7 +31,7 @@ const MUTATING_TOOLS = new Set(['write_file', 'run_command']);
 @Component({
   selector: 'app-chat-panel',
   standalone: true,
-  imports: [CommonModule, FormsModule, ToolEventComponent, ToolGroupComponent],
+  imports: [CommonModule, FormsModule, ToolEventComponent, ToolGroupComponent, MarkdownPipe],
   templateUrl: './chat-panel.html',
   styleUrl: './chat-panel.css',
   host: {
