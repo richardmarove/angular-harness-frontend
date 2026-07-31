@@ -96,7 +96,6 @@ export class ChatPanelComponent implements AfterViewInit, AfterViewChecked, OnDe
     this.errorMsg.set(null);
     this.clearCountdown();
     this.userInput.set('');
-    this.autoResize();
 
     this.chatStore.addMessage({ role: 'user', type: 'text', content: text, streaming: false });
     this.shouldScrollBottom = true;
@@ -121,9 +120,7 @@ export class ChatPanelComponent implements AfterViewInit, AfterViewChecked, OnDe
   }
 
   private runAgent(history: { role: 'user' | 'model'; content: string }[]): void {
-    const modelMsgId = this.chatStore.addMessage({
-      role: 'model', type: 'text', content: '', streaming: true,
-    });
+    let modelMsgId: string | null = null;
     let activeToolMsgId: string | null = null;
 
     this.streamSub = this.agentService
@@ -131,6 +128,7 @@ export class ChatPanelComponent implements AfterViewInit, AfterViewChecked, OnDe
       .subscribe({
         next: (event) => {
           this.shouldScrollBottom = true;
+
           if (event.type === 'tool_call') {
             activeToolMsgId = this.chatStore.addMessage({
               role: 'tool', type: 'tool_call', content: '',
@@ -144,18 +142,23 @@ export class ChatPanelComponent implements AfterViewInit, AfterViewChecked, OnDe
               activeToolMsgId = null;
             }
           } else if (event.type === 'chunk') {
+            if (modelMsgId === null) {
+              modelMsgId = this.chatStore.addMessage({
+                role: 'model', type: 'text', content: '', streaming: true,
+              });
+            }
             this.chatStore.appendToMessage(modelMsgId, event.text);
           }
         },
         error: (err: AgentError) => {
-          this.chatStore.finalizeMessage(modelMsgId);
+          if (modelMsgId) this.chatStore.finalizeMessage(modelMsgId);
           if (activeToolMsgId) this.chatStore.finalizeMessage(activeToolMsgId);
           this.errorMsg.set(this.toErrorInfo(err));
           if (err.retryAfterSec) this.startCountdown(err.retryAfterSec);
           console.error('Agent error:', err);
         },
         complete: () => {
-          this.chatStore.finalizeMessage(modelMsgId);
+          if (modelMsgId) this.chatStore.finalizeMessage(modelMsgId);
           this.shouldScrollBottom = true;
         },
       });
