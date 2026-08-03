@@ -68,6 +68,7 @@ export class ChatPanelComponent implements AfterViewInit, AfterViewChecked, OnDe
   ]);
 
   private shouldScrollBottom = false;
+  private shouldResizeInput = false;
 
   readonly renderItems = computed<RenderItem[]>(() => {
     const items: RenderItem[] = [];
@@ -101,6 +102,10 @@ export class ChatPanelComponent implements AfterViewInit, AfterViewChecked, OnDe
       this.scrollToBottom();
       this.shouldScrollBottom = false;
     }
+    if (this.shouldResizeInput) {
+      this.autoResize();
+      this.shouldResizeInput = false;
+    }
   }
 
   ngOnDestroy(): void {
@@ -133,7 +138,7 @@ export class ChatPanelComponent implements AfterViewInit, AfterViewChecked, OnDe
     this.clearCountdown();
     this.unavailableAttempt = 0;
     this.userInput.set('');
-    queueMicrotask(() => this.autoResize());
+    this.shouldResizeInput = true;
 
     this.chatStore.addMessage({ role: 'user', type: 'text', content: text, streaming: false });
     this.shouldScrollBottom = true;
