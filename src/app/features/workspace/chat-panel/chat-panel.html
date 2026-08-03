@@ -63,6 +63,8 @@
 
       @if (item.kind === 'tool_group') {
         <app-tool-group [calls]="item.calls"></app-tool-group>
+      } @else if (item.msg.type === 'thought') {
+        <app-thought-card [content]="item.msg.content" [isStreaming]="item.msg.streaming"></app-thought-card>
       } @else {
         <!-- Chat message bubble row -->
         <div class="flex gap-3 animate-fade-in" [class.flex-row-reverse]="item.msg.role === 'user'">

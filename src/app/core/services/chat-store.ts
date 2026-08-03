@@ -1,13 +1,12 @@
 import { Injectable, signal, computed } from '@angular/core';
 
-export type MessageType = 'text' | 'tool_call' | 'tool_result';
+export type MessageType = 'text' | 'tool_call' | 'tool_result' | 'thought';
 
 export interface DisplayMessage {
   id: string;
   role: 'user' | 'model' | 'tool';
   type: MessageType;
   content: string;
-  // Tool-specific fields
   toolName?: string;
   toolArgs?: Record<string, unknown>;
   toolResult?: string;

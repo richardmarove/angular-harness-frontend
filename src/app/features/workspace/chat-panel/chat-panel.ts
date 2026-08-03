@@ -10,6 +10,7 @@ import { ChatStoreService, DisplayMessage } from '../../../core/services/chat-st
 import { SessionService } from '../../../core/services/session';
 import { ToolEventComponent } from './tool-event/tool-event';
 import { ToolGroupComponent } from './tool-group/tool-group';
+import { ThoughtCardComponent } from './thought-card/thought-card';
 import { MarkdownPipe } from '../../../shared/pipes/markdown.pipe';
 
 type RenderItem =
@@ -32,7 +33,7 @@ const MUTATING_TOOLS = new Set(['write_file', 'run_command']);
 @Component({
   selector: 'app-chat-panel',
   standalone: true,
-  imports: [CommonModule, FormsModule, ToolEventComponent, ToolGroupComponent, MarkdownPipe],
+  imports: [CommonModule, FormsModule, ToolEventComponent, ToolGroupComponent, MarkdownPipe, ThoughtCardComponent],
   templateUrl: './chat-panel.html',
   styleUrl: './chat-panel.css',
   host: {
@@ -160,6 +161,7 @@ export class ChatPanelComponent implements AfterViewInit, AfterViewChecked, OnDe
   private runAgent(history: { role: 'user' | 'model'; content: string }[], resumeTurnId?: string): void {
     let modelMsgId: string | null = null;
     let activeToolMsgId: string | null = null;
+    let thoughtMsgId: string | null = null;
 
     this.streamSub = this.agentService
       .runAgent({ messages: history, workingDir: this.sessionService.workingDir(), turnId: resumeTurnId })
@@ -169,7 +171,18 @@ export class ChatPanelComponent implements AfterViewInit, AfterViewChecked, OnDe
 
           if (event.type === 'turn') {
             this.currentTurnId = event.turnId;
+          } else if (event.type === 'thought') {
+            if (thoughtMsgId === null) {
+              thoughtMsgId = this.chatStore.addMessage({
+                role: 'model', type: 'thought', content: '', streaming: true,
+              });
+            }
+            this.chatStore.appendToMessage(thoughtMsgId, event.text);
           } else if (event.type === 'tool_call') {
+            if (thoughtMsgId) {
+              this.chatStore.finalizeMessage(thoughtMsgId);
+              thoughtMsgId = null;
+            }
             activeToolMsgId = this.chatStore.addMessage({
               role: 'tool', type: 'tool_call', content: '',
               toolName: event.name, toolArgs: event.args, streaming: true,
@@ -182,6 +195,10 @@ export class ChatPanelComponent implements AfterViewInit, AfterViewChecked, OnDe
               activeToolMsgId = null;
             }
           } else if (event.type === 'chunk') {
+            if (thoughtMsgId) {
+              this.chatStore.finalizeMessage(thoughtMsgId);
+              thoughtMsgId = null;
+            }
             if (modelMsgId === null) {
               modelMsgId = this.chatStore.addMessage({
                 role: 'model', type: 'text', content: '', streaming: true,
@@ -191,6 +208,7 @@ export class ChatPanelComponent implements AfterViewInit, AfterViewChecked, OnDe
           }
         },
         error: (err: AgentError) => {
+          if (thoughtMsgId) this.chatStore.finalizeMessage(thoughtMsgId);
           if (modelMsgId) this.chatStore.finalizeMessage(modelMsgId);
           if (activeToolMsgId) this.chatStore.finalizeMessage(activeToolMsgId);
           const turnId = err.turnId ?? this.currentTurnId ?? undefined;
@@ -204,6 +222,7 @@ export class ChatPanelComponent implements AfterViewInit, AfterViewChecked, OnDe
           console.error('Agent error:', err);
         },
         complete: () => {
+          if (thoughtMsgId) this.chatStore.finalizeMessage(thoughtMsgId);
           if (modelMsgId) this.chatStore.finalizeMessage(modelMsgId);
           this.currentTurnId = null;
           this.unavailableAttempt = 0;
