@@ -133,6 +133,7 @@ export class ChatPanelComponent implements AfterViewInit, AfterViewChecked, OnDe
     this.clearCountdown();
     this.unavailableAttempt = 0;
     this.userInput.set('');
+    queueMicrotask(() => this.autoResize());
 
     this.chatStore.addMessage({ role: 'user', type: 'text', content: text, streaming: false });
     this.shouldScrollBottom = true;
