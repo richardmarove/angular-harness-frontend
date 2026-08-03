@@ -10,6 +10,7 @@ export type AgentEvent =
   | { type: 'turn'; turnId: string }
   | { type: 'tool_call'; name: string; args: Record<string, unknown> }
   | { type: 'tool_result'; name: string; result: string; error?: string }
+  | { type: 'thought'; text: string }
   | { type: 'chunk'; text: string }
   | { type: 'done' }
   | { type: 'error'; message: string; code?: number | string; status?: string; retryAfterSec?: number; raw?: string; turnId?: string };
