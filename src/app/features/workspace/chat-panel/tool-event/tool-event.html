@@ -1,14 +1,14 @@
 <!-- Tool Event Card (Collapsible) -->
-<div class="my-1.5 rounded-lg border border-[#d5c4a1] bg-surface overflow-hidden text-xs font-mono">
+<div class="my-1.5 rounded-lg border border-border bg-surface overflow-hidden text-xs font-mono">
 
   <!-- Header Bar -->
   <button
     (click)="toggle()"
-    class="w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-[#ebdbb2]/50 transition-colors">
+    class="w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-surface-3/50 transition-colors">
 
     <!-- Expand Chevron or Spinner -->
     @if (isStreaming) {
-      <svg class="w-3.5 h-3.5 animate-spin shrink-0 text-[#076678]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+      <svg class="w-3.5 h-3.5 animate-spin shrink-0 text-aqua" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
       </svg>
@@ -35,18 +35,18 @@
     <!-- Status Badge -->
     <span class="ml-auto shrink-0 text-[10px] font-semibold">
       @if (isStreaming) {
-        <span class="text-[#076678] animate-pulse">Running…</span>
+        <span class="text-aqua animate-pulse">Running…</span>
       } @else if (toolError) {
-        <span class="text-[#9d0006] font-mono">✗ Error</span>
+        <span class="text-danger font-mono">✗ Error</span>
       } @else if (toolResult) {
-        <span class="text-[#79740e] font-mono">✓ Success</span>
+        <span class="text-success font-mono">✓ Success</span>
       }
     </span>
   </button>
 
   <!-- Expanded Details Body -->
   @if (expanded()) {
-    <div class="border-t border-[#d5c4a1] divide-y divide-[#d5c4a1] bg-surface-2/60">
+    <div class="border-t border-border divide-y divide-border bg-surface-2/60">
 
       <!-- Arguments Section -->
       @if (toolArgs && (toolArgs | keyvalue).length > 0) {
@@ -57,8 +57,8 @@
           <div class="space-y-1">
             @for (entry of toolArgs | keyvalue; track entry.key) {
               <div class="flex gap-2 text-[11px]">
-                <span class="text-[#076678] font-semibold">{{ entry.key }}:</span>
-                <span class="text-[#282828] truncate font-mono bg-surface px-1.5 py-0.5 rounded border border-[#d5c4a1]">{{ entry.value }}</span>
+                <span class="text-aqua font-semibold">{{ entry.key }}:</span>
+                <span class="text-text truncate font-mono bg-surface px-1.5 py-0.5 rounded border border-border">{{ entry.value }}</span>
               </div>
             }
           </div>
@@ -70,17 +70,17 @@
         <div class="p-3">
           <div class="flex items-center justify-between mb-1.5">
             <span class="text-[10px] uppercase font-sans font-bold tracking-wider"
-              [class.text-[#79740e]]="!toolError"
-              [class.text-[#9d0006]]="toolError">
+              [class.text-success]="!toolError"
+              [class.text-danger]="toolError">
               {{ toolError ? 'Execution Error' : 'Output Payload' }}
             </span>
             <button
               (click)="copyOutput()"
-              class="text-[10px] font-sans px-2 py-0.5 rounded bg-[#ebdbb2] hover:bg-[#d5c4a1] text-[#282828] transition-colors border border-[#d5c4a1]">
+              class="text-[10px] font-sans px-2 py-0.5 rounded bg-surface-3 hover:bg-surface-4 text-text transition-colors border border-border">
               {{ copied() ? '✓ Copied' : 'Copy Output' }}
             </button>
           </div>
-          <pre class="text-[11px] text-[#282828] whitespace-pre-wrap break-all leading-relaxed max-h-48 overflow-y-auto bg-surface p-2.5 rounded-lg border border-[#d5c4a1] font-mono m-0">{{ toolError || toolResult }}</pre>
+          <pre class="text-[11px] text-text whitespace-pre-wrap break-all leading-relaxed max-h-48 overflow-y-auto bg-surface p-2.5 rounded-lg border border-border font-mono m-0">{{ toolError || toolResult }}</pre>
         </div>
       }
     </div>
