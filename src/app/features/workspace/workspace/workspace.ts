@@ -4,6 +4,7 @@ import { ChatPanelComponent } from '../chat-panel/chat-panel';
 import { FileTreeComponent } from '../file-tree/file-tree';
 import { EditorPanelComponent } from '../editor-panel/editor-panel';
 import { SessionSetupComponent } from '../session-setup/session-setup';
+import { ThemeSwitcherComponent } from '../../../shared/theme-switcher/theme-switcher';
 import { SessionService } from '../../../core/services/session';
 import { FileService } from '../../../core/services/file';
 
@@ -16,6 +17,7 @@ import { FileService } from '../../../core/services/file';
     FileTreeComponent,
     EditorPanelComponent,
     SessionSetupComponent,
+    ThemeSwitcherComponent,
   ],
   templateUrl: './workspace.html',
   styleUrl: './workspace.css',
