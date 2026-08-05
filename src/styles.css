@@ -14,10 +14,102 @@
   --color-border-subtle: rgba(40, 40, 40, 0.12);
   --color-text: #282828;
   --color-text-muted: #7c6f64;
+  --color-text-on-accent: #fbf1c7;
   --color-user-bubble: #ebdbb2;
   --color-model-bubble: #f9f5d7;
+
+  --color-aqua: #076678;
+  --color-aqua-bg: #e1ecf0;
+  --color-aqua-border: rgba(7, 102, 120, 0.25);
+
+  --color-success: #79740e;
+  --color-success-bg: #e6ebd0;
+  --color-success-border: rgba(121, 116, 14, 0.25);
+
+  --color-warning: #b57614;
+  --color-warning-bg: #f5ebd4;
+  --color-warning-border: rgba(181, 118, 20, 0.25);
+
+  --color-danger: #9d0006;
+  --color-danger-bg: #fbd6d6;
+  --color-danger-border: rgba(157, 0, 6, 0.25);
+
+  --color-purple: #8f3f71;
+  --color-purple-bg: #eee0e7;
+  --color-purple-border: rgba(143, 63, 113, 0.25);
+
+  --color-orange: #af3a03;
+  --color-orange-bg: #fbeada;
+  --color-orange-border: rgba(175, 58, 3, 0.25);
+
+  --color-teal: #427b58;
+  --color-teal-bg: #e4ede7;
+  --color-teal-border: rgba(66, 123, 88, 0.25);
+
+  --color-info: #d79921;
+  --color-info-bg: #f5ebd4;
+  --color-info-border: #d79921;
+
+  --color-scrollbar-thumb: #bdae93;
+  --color-scrollbar-thumb-hover: #928374;
+  --color-scrollbar-track: rgba(40, 40, 40, 0.05);
+
   --font-mono: "JetBrains Mono", "Fira Code", monospace;
   --font-sans: "Plus Jakarta Sans", system-ui, sans-serif;
+}
+
+:root[data-theme="gruvbox-dark"] {
+  --color-surface: #282828;
+  --color-surface-2: #3c3836;
+  --color-surface-3: #504945;
+  --color-surface-4: #665c54;
+  --color-accent: #ebdbb2;
+  --color-accent-hover: #fbf1c7;
+  --color-accent-glow: rgba(235, 219, 178, 0.08);
+  --color-accent-muted: rgba(235, 219, 178, 0.06);
+  --color-border: #504945;
+  --color-border-subtle: rgba(235, 219, 178, 0.12);
+  --color-text: #ebdbb2;
+  --color-text-muted: #bdae93;
+  --color-text-on-accent: #282828;
+  --color-user-bubble: #3c3836;
+  --color-model-bubble: #32302f;
+
+  --color-aqua: #83a598;
+  --color-aqua-bg: #2b3c42;
+  --color-aqua-border: rgba(131, 165, 152, 0.3);
+
+  --color-success: #b8bb26;
+  --color-success-bg: #32361a;
+  --color-success-border: rgba(184, 187, 38, 0.3);
+
+  --color-warning: #fabd2f;
+  --color-warning-bg: #3b321c;
+  --color-warning-border: rgba(250, 189, 47, 0.3);
+
+  --color-danger: #fb4934;
+  --color-danger-bg: #422320;
+  --color-danger-border: rgba(251, 73, 52, 0.3);
+
+  --color-purple: #d3869b;
+  --color-purple-bg: #3d2b34;
+  --color-purple-border: rgba(211, 134, 155, 0.3);
+
+  --color-orange: #fe8019;
+  --color-orange-bg: #40291d;
+  --color-orange-border: rgba(254, 128, 25, 0.3);
+
+  --color-teal: #8ec07c;
+  --color-teal-bg: #2d3b32;
+  --color-teal-border: rgba(142, 192, 124, 0.3);
+
+  --color-info: #fabd2f;
+  --color-info-bg: #3b321c;
+  --color-info-border: #fabd2f;
+
+  --color-scrollbar-thumb: #665c54;
+  --color-scrollbar-thumb-hover: #7c6f64;
+  --color-scrollbar-track: rgba(235, 219, 178, 0.05);
 }
 
 *, *::before, *::after {
@@ -49,33 +141,33 @@ html, body {
 
 /* Gruvbox Light Muted Pastel Badges */
 .badge-aqua {
-  background-color: #e1ecf0;
-  color: #076678;
-  border: 1px solid rgba(7, 102, 120, 0.25);
+  background-color: var(--color-aqua-bg);
+  color: var(--color-aqua);
+  border: 1px solid var(--color-aqua-border);
 }
 
 .badge-green {
-  background-color: #e6ebd0;
-  color: #79740e;
-  border: 1px solid rgba(121, 116, 14, 0.25);
+  background-color: var(--color-success-bg);
+  color: var(--color-success);
+  border: 1px solid var(--color-success-border);
 }
 
 .badge-amber {
-  background-color: #f5ebd4;
-  color: #b57614;
-  border: 1px solid rgba(181, 118, 20, 0.25);
+  background-color: var(--color-warning-bg);
+  color: var(--color-warning);
+  border: 1px solid var(--color-warning-border);
 }
 
 .badge-red {
-  background-color: #fbd6d6;
-  color: #9d0006;
-  border: 1px solid rgba(157, 0, 6, 0.25);
+  background-color: var(--color-danger-bg);
+  color: var(--color-danger);
+  border: 1px solid var(--color-danger-border);
 }
 
 .badge-purple {
-  background-color: #eee0e7;
-  color: #8f3f71;
-  border: 1px solid rgba(143, 63, 113, 0.25);
+  background-color: var(--color-purple-bg);
+  color: var(--color-purple);
+  border: 1px solid var(--color-purple-border);
 }
 
 .badge-neutral {
@@ -86,16 +178,16 @@ html, body {
 
 /* Primary High-Contrast Gruvbox CTA Button */
 .btn-primary {
-  background-color: #282828;
-  color: #fbf1c7;
-  border: 1px solid #282828;
+  background-color: var(--color-accent);
+  color: var(--color-text-on-accent);
+  border: 1px solid var(--color-accent);
   border-radius: 8px;
   font-weight: 600;
   transition: all 150ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .btn-primary:hover:not(:disabled) {
-  background-color: #3c3836;
+  background-color: var(--color-accent-hover);
   transform: translateY(-1px);
 }
 
@@ -105,7 +197,7 @@ html, body {
 
 /* Custom Scrollbar (Webkit + Firefox) */
 * {
-  scrollbar-color: #bdae93 rgba(40, 40, 40, 0.05);
+  scrollbar-color: var(--color-scrollbar-thumb) var(--color-scrollbar-track);
   scrollbar-width: thin;
 }
 
@@ -114,14 +206,14 @@ html, body {
   height: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: rgba(40, 40, 40, 0.05);
+  background: var(--color-scrollbar-track);
 }
 ::-webkit-scrollbar-thumb {
-  background: #bdae93;
+  background: var(--color-scrollbar-thumb);
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #928374;
+  background: var(--color-scrollbar-thumb-hover);
 }
 
 /* Subtle Micro-Animations */
